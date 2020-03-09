@@ -5,10 +5,76 @@ from math import cos, pi, sin, tan, pow
 #global constants
 g = 9.81
 
-def sampleFunction(a,b,c):
-    s = a+b+c
+def sampleFunction(param):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Short description of what the function does
+    #
+    # Input:    name [type]                             description of the variable
+    #           name2 [type2]                           description of the variable2
+    #           ...                                     ...
+    # Output:   name [type]                             description of the variable
+    #           name2 [type2]                           description fothe varaible2
+    #           ...                                     ...
+    #
+    #----------------------------------------------------------------------------------------------
+
+    s = param.b+param.S+param.c
     return s
 
+def stateSpace(param):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Calculate state-space matrices for symmetric and asymmetric equations of motion
+    #
+    # Input:    param [Class]                           Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py
+    # Output:   As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]     State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
+    #
+    #----------------------------------------------------------------------------------------------
+
+    C1s = np.matrix([[ -2*param.muc*(param.c/param.V0) , 0 , 0 , 0 ],
+                     [ 0 , (param.CZadot-2*param.muc)*(param.c/param.V0) , 0 , 0 ],
+                     [ 0 , 0 , -(param.c/param.V0) , 0 ],
+                     [ 0 , param.Cmadot , 0 , -2*param.muc*param.KY2*(param.c/param.V0)]])
+
+    C2s = np.matrix([[ param.CXu , param.CXa , param.CZ0 , param.CXq ],
+                     [ param.CZu , param.CZa, -param.CX0 , (param.CZq+2*param.muc)],
+                     [ 0 , 0 , 0 , 1 ],
+                     [ param.Cmu , param.Cma , 0 , param.Cmq]])
+
+    C3s = np.matrix([[ param.CXde ],
+                     [ param.CZde ],
+                     [ 0 ],
+                     [ param.Cmde]])
+
+    C1sInverse = np.linalg.inv(C1s)
+    As = -np.matmul(C1sInverse,C2s)
+    Bs = -np.matmul(C1sInverse,C3s)
+    Cs = np.eye(4)
+    Ds = np.zeros((4,1))
+
+    C1a = np.matrix([[ (param.CYbdot-2*param.mub)*(param.b/param.V0) , 0 , 0 , 0 ],
+                     [ 0 , -(1/2)*(param.b/param.V0) , 0 , 0 ],
+                     [ 0 , 0 , -4*param.mub*param.KX2*(param.b/param.V0) , 4*param.mub*param.KXZ*(param.b/param.V0) ],
+                     [ param.Cnbdot , 0 , 4*param.mub*param.KXZ*(param.b/param.V0) , -4*param.mub*param.KZ2*(param.b/param.V0) ]])
+
+    C2a = np.matrix([[ param.CYb, param.CL , param.CYp , (param.CYr-4*param.mub) ],
+                     [ 0    , 0 , 1 , 0 ],
+                     [ param.Clb , 0 , param.Clp , param.Clr ],
+                     [ param.Cnb , 0 , param.Cnp , param.Cnr ]])
+
+    C3a = np.matrix([[ param.CYda , param.CYdr ],
+                     [ 0 , 0 ],
+                     [ param.Clda , param.Cldr ],
+                     [ param.Cnda , param.Cndr ]])
+
+    C1aInverse = np.linalg.inv(C1a)
+    Aa = -np.matmul(C1aInverse, C2a)
+    Ba = -np.matmul(C1aInverse, C3a)
+    Ca = np.eye(4)
+    Da = np.zeros((4, 2))
+
+    return As,Bs,Cs,Ds,Aa,Ba,Ca,Da
 
 class ParametersOld:
     #initial unimproved parameters from appendix C
@@ -23,8 +89,7 @@ class ParametersOld:
         # Aircraft mass
         self.m = 123  # mass [kg]
 
-        ### CHANGE ABOVE VALUES (123) TO REAL VALUES
-
+        ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]
@@ -59,7 +124,7 @@ class ParametersOld:
 
         # air density [kg/m^3]
         self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((g / (self.lamb *self.R)) + 1)))
-        self.W = self.m * g  # [N]       (aircraft weight)
+        self.W = self.m * self.g  # [N]       (aircraft weight)
 
         # Constant values concerning aircraft inertia
         self.muc = self.m / (self.rho * self.S * self.c)
@@ -120,15 +185,27 @@ class ParametersOld:
 
 
 def main():
-    #invoking functions should be done here
+    #invoking functions should be done in main()
     param = ParametersOld()
 
-    s = sampleFunction(param.A,param.b,param.c)
-    print(s)
+    s = sampleFunction(param)
+    print("s is: ", s)
+
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+    print("State matrices are:")
+    print("As: ", As)
+    print("Bs: ", Bs)
+    print("Cs: ", Cs)
+    print("Ds: ", Ds)
+    print("Aa: ", Aa)
+    print("Ba: ", Ba)
+    print("Ca: ", Ca)
+    print("Da: ", Da)
+
 
     return
 
 
 if __name__ == "__main__":
-    #when script is run do the following
+    #this is run when script is started, dont change
     main()
