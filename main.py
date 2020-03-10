@@ -76,7 +76,6 @@ def stateSpace(param):
 
     return As,Bs,Cs,Ds,Aa,Ba,Ca,Da
 
-
 class ParametersOld:
     #initial unimproved parameters from appendix C
     def __init__(self):
@@ -124,8 +123,10 @@ class ParametersOld:
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
         self.lamb = -0.0065  # temperature gradient in ISA [K/m]
         self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
         self.R      = 287.05  # specific gas constant [m^2/sec^2K]
         self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
 
         # air density [kg/m^3]
         self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((g / (self.lamb *self.R)) + 1)))
@@ -213,5 +214,3 @@ def main():
 if __name__ == "__main__":
     #this is run when script is started, dont change
     main()
-
-main()
