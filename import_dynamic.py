@@ -24,3 +24,5 @@ def matToCSV(inputFile,outputFile):
     df = pd.DataFrame(data=dict)
     df.to_csv('dynamicData/'+outputFile+'.csv', index=False)
     return
+
+#matToCSV('reference','reference')
