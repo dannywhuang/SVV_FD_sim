@@ -302,12 +302,12 @@ class ParametersOld:
         self.gamma = 1.4 # 
 
         # air density [kg/m^3]
-        # self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((self.g / (self.lamb *self.R)) + 1)))
-        # self.W = self.m * self.g  # [N]       (aircraft weight)
+        self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((self.g / (self.lamb *self.R)) + 1)))
+        self.W = self.m * self.g  # [N]       (aircraft weight)
 
         # Constant values concerning aircraft inertia
-        # self.muc = self.m / (self.rho * self.S * self.c)
-        # self.mub = self.m / (self.rho * self.S * self.b)
+        self.muc = self.m / (self.rho * self.S * self.c)
+        self.mub = self.m / (self.rho * self.S * self.b)
         self.KX2 = 0.019
         self.KZ2 = 0.042
         self.KXZ = 0.002
@@ -320,18 +320,18 @@ class ParametersOld:
         self.depsda = 4 / (self.A + 2)  # Downwash gradient [ ]
 
         # Lift and drag coefficient
-        # self.CL = 2 * self.W / (self.rho * self.V0 ** 2 * self.S)  # Lift coefficient [ ]
-        # self.CD = self.CD0 + (self.CLa * self.alpha0) ** 2 / (pi * self.A * self.e)  # Drag coefficient [ ]
+        self.CL = 2 * self.W / (self.rho * self.V0 ** 2 * self.S)  # Lift coefficient [ ]
+        self.CD = self.CD0 + (self.CLa * self.alpha0) ** 2 / (pi * self.A * self.e)  # Drag coefficient [ ]
 
         # Stabiblity derivatives
-        # self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CXu = -0.02792
         self.CXa = +0.47966  # Positive! (has been erroneously negative since 1993)
         self.CXadot = +0.08330
         self.CXq = -0.28170
         self.CXde = -0.03728
 
-        # self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CZu = -0.37616
         self.CZa = -5.74340
         self.CZadot = -0.00350
@@ -393,11 +393,11 @@ def main():
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    #plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
-    #plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
-    #plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
+    plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
+    plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
+    plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
-# if __name__ == "__main__":
-#     #this is run when script is started, dont change
-#     main()
+if __name__ == "__main__":
+    #this is run when script is started, dont change
+    main()
 
