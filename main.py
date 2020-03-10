@@ -1,6 +1,8 @@
 #Initial numerical model before making improvements to parameters
 import numpy as np
 from math import cos, pi, sin, tan, pow
+from import_dynamic import sliceTime
+import control.matlab as ml
 
 #global constants
 g = 9.81
@@ -21,6 +23,52 @@ def sampleFunction(param):
 
     s = param.b+param.S+param.c
     return s
+
+
+def calcResponse(t0,duration,fileName,param):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Calculate responses using dynamic measurement data
+    #
+    # Input:    t0 [Value]          The time at which the response starts
+    #           duration [Value]    The duration of the response
+    #           fileName [String]   Name of dynamic measurement data file, so reference or flighttest
+    #           param [Class]       Class with paramaters of aircraft
+    # Output:   XoutS [Array]       Array with state variable responses for symmetric
+    #           YoutS [Array]       Array with output variable responses for symmetric
+    #           XoutA [Array]       Array with state variable responses for asymmetric
+    #           YoutS [Array]       Array with output variable responses for asymmetric
+    #
+    #----------------------------------------------------------------------------------------------
+
+    # get state matrices using aircraft parameters
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+
+    # create state space models
+    stateSpaceS = ml.ss(As,Bs,Cs,Ds)
+    stateSpaceA = ml.ss(Aa,Ba,Ca,Da)
+
+    # get data from the dynamic measurement file
+    dfTime = sliceTime(fileName,t0,duration)
+    time = dfTime['time']
+    delta_a = dfTime['delta_a']
+    delta_e = dfTime['delta_e']
+    delta_r = dfTime['delta_r']
+
+    # input variables
+    us = delta_e
+    ua = np.vstack((delta_a,delta_r)).T
+
+    # initial condition
+    x0s = [0 , 0 , 0 , dfTime['Ahrs1_bPitchRate'][0]*(param.c/dfTime['time'][0])]
+    x0a = [0 , dfTime['Ahrs1_Roll'][0] ,(dfTime['Ahrs1_bPitchRate'][0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bRollRate'][0]*param.b)/(2*param.V0)]
+
+    # calculate responses
+    YoutS, tS, XoutS = ml.lsim(stateSpaceS, us, time, x0s)
+    YoutA, tA, XoutA = ml.lsim(stateSpaceA, ua, time, x0a)
+    
+    return XoutS, YoutS, XoutA, YoutA
+
 
 def stateSpace(param):
     #----------------------------------------------------------------------------------------------
@@ -78,16 +126,47 @@ def stateSpace(param):
 
 class ParametersOld:
     #initial unimproved parameters from appendix C
-    def __init__(self):
+    def __init__(self,type,fileName,t0):
+        # ----------------------------------------------------------------------------------------------
+        #
+        # Short description of what the function does
+        #
+        # Input:    type [String]           Do you want parameters for dynamic, static1 or static2?
+        #           fileName [String]       If you choose dynamic, what is the fileName of the .csv file? This gives you an option to choose between reference data and actual flight test data
+        #           t0 [Value]              At what time do you want the stationary flight condition variables?
+        # Output:   ParametersOld [Class]   Class containing the parameters
+        #
+        # ----------------------------------------------------------------------------------------------
+        if type=="dynamic":
+            df = sliceTime(fileName,t0,1)
+            # Stationary flight condition
+            self.hp0 = df['Dadc1_alt'] # pressure altitude in the stationary flight condition [m]
+            self.V0 = df['Dadc1_tas'] # true airspeed in the stationary flight condition [m/sec]
+            self.alpha0 = df['vane_AOA'] # angle of attack in the stationary flight condition [rad]
+            self.th0 = df['Ahrs1_Pitch'] # pitch angle in the stationary flight condition [rad]
 
-        # Stationary flight condition
-        self.hp0 = 123 # pressure altitude in the stationary flight condition [m]
-        self.V0 = 123 # true airspeed in the stationary flight condition [m/sec]
-        self.alpha0 = 123 # angle of attack in the stationary flight condition [rad]
-        self.th0 = 123 # pitch angle in the stationary flight condition [rad]
+            # Aircraft mass
+            self.m = 123  # use calculate weight function
+        elif type=="static1":
+            # Stationary flight condition
+            self.hp0 = 123  # pressure altitude in the stationary flight condition [m]
+            self.V0 = 123  # true airspeed in the stationary flight condition [m/sec]
+            self.alpha0 = 123  # angle of attack in the stationary flight condition [rad]
+            self.th0 = 123  # pitch angle in the stationary flight condition [rad]
 
-        # Aircraft mass
-        self.m = 123  # mass [kg]
+            # Aircraft mass
+            self.m = 123  # mass [kg]
+        elif type=='static2':
+            # Stationary flight condition
+            self.hp0 = 123  # pressure altitude in the stationary flight condition [m]
+            self.V0 = 123  # true airspeed in the stationary flight condition [m/sec]
+            self.alpha0 = 123  # angle of attack in the stationary flight condition [rad]
+            self.th0 = 123  # pitch angle in the stationary flight condition [rad]
+
+            # Aircraft mass
+            self.m = 123  # mass [kg]
+        else:
+            print("Please enter a valid type: dynamic, static1 or static2")
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
@@ -186,21 +265,21 @@ class ParametersOld:
 
 def main():
     #invoking functions should be done in main()
-    param = ParametersOld()
+    paramPhugoid = ParametersOld('dynamic','reference',3237) #Phugoid from reference post_flight_datasheet
 
-    s = sampleFunction(param)
-    print("s is: ", s)
+    #s = sampleFunction(param)
+    #print("s is: ", s)
 
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
-    print("State matrices are:")
-    print("As: ", As)
-    print("Bs: ", Bs)
-    print("Cs: ", Cs)
-    print("Ds: ", Ds)
-    print("Aa: ", Aa)
-    print("Ba: ", Ba)
-    print("Ca: ", Ca)
-    print("Da: ", Da)
+    #As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+    #print("State matrices are:")
+    #print("As: ", As)
+    #print("Bs: ", Bs)
+    #print("Cs: ", Cs)
+    #print("Ds: ", Ds)
+    #print("Aa: ", Aa)
+    #print("Ba: ", Ba)
+    #print("Ca: ", Ca)
+    #print("Da: ", Da)
 
 
     return
