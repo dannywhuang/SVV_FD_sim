@@ -1,4 +1,3 @@
-import numpy as np 
 
 def calcElevEffectiveness(param, secMeasSeries_2):
     '''
@@ -13,13 +12,14 @@ def calcElevEffectiveness(param, secMeasSeries_2):
 
     # Constant values
     cbar = param.c
-    delta1 = secMeasSeries_2#[index]
-    delta2 = secMeasSeries_2#[index]
+    delta = secMeasSeries_2['delta']
+    delta1 = delta[0]
+    delta2 = delta[1]
 
     # Function values
-    CN = 0#function calculating lift coefficient
-    xcg1 = 0#function calculating center of gravity location
-    xcg2 = 0#function calculating center of gravity location
+    CN = 0#lift function ...
+    xcg1 = 0#weight function ...
+    xcg2 = 0#weight function ...
 
     Cmdelta = ( CN * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
 
@@ -39,11 +39,11 @@ def calElevDeflection(param, secMeasSeries_1, secMeasSeries_2):
 
     # Constant values
     CmTc = param.CmTc
-    delta = secMeasSeries_1#[index]
+    delta = secMeasSeries_1['delta']
 
     # Function values
-    Tcs = 0#function calculating the thrust coefficient
-    Tc = 0#function calculating the thrust coefficient
+    Tcs = 0#thrust function ...
+    Tc = 0#thrust function ...
     Cmdelta = calcElevEffectiveness(param, secMeasSeries_2)
 
     delta_Red = delta - CmTc * (Tcs - Tc) / Cmdelta
@@ -63,10 +63,10 @@ def calcElevContrForce(param, secMeasSeries_1):
 
     # Constant values
     Ws = param.Ws
-    Fe = secMeasSeries_1#[index]
+    Fe = secMeasSeries_1['Fe']
 
     # Function values
-    W = 0#function calculating the weight at meassurement condition
+    W = 0#weight function ...
 
     Fe_Red = Fe * Ws / W
 
