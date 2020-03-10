@@ -1,3 +1,4 @@
+
 from math import sqrt
 
 
@@ -24,6 +25,7 @@ def calcV(param, meas):
     R     = param.R
 
     V        = meas['Vi']
+
     TempMeas = meas['TAT']
     hp       = meas['hp']
 
