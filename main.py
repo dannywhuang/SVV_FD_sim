@@ -76,6 +76,7 @@ def stateSpace(param):
 
     return As,Bs,Cs,Ds,Aa,Ba,Ca,Da
 
+
 class ParametersOld:
     #initial unimproved parameters from appendix C
     def __init__(self):
@@ -90,6 +91,10 @@ class ParametersOld:
         self.m = 123  # mass [kg]
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
+
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
 
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]
@@ -114,8 +119,8 @@ class ParametersOld:
         self.Vh_V = 1  # [ ]self.
         self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
         self.xcg = 0.25 * self.c
-        # Constant values concerning atmosphere and gravity
 
+        # Constant values concerning atmosphere and gravity
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
         self.lamb = -0.0065  # temperature gradient in ISA [K/m]
         self.Temp0  = 288.15  # temperature at sea level in ISA [K]
@@ -162,6 +167,7 @@ class ParametersOld:
         self.Cmu = +0.06990
         self.Cmadot = +0.17800
         self.Cmq = -8.79415
+        self.CmTc = -0.0064
 
         self.CYb = -0.7500
         self.CYbdot = 0
@@ -182,7 +188,6 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
-
 
 def main():
     #invoking functions should be done in main()
@@ -205,7 +210,8 @@ def main():
 
     return
 
-
 if __name__ == "__main__":
     #this is run when script is started, dont change
     main()
+
+main()
