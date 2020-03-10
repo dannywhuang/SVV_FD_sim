@@ -2,16 +2,17 @@ import scipy.io as sio
 import pandas as pd
 
 
-def rawToCSV():
+def matToCSV(inputFile,outputFile):
     #----------------------------------------------------------------------------------------------
     #
-    # Converts matlab.mat to data.csv file
+    # Converts .mat to .csv file
     #
-    # Input:    None
+    # Input:    inputFile [String]      Name of the .mat file
+    #           outputFile [String]     Name of the .csv file
     # Output:   None
     #
     #----------------------------------------------------------------------------------------------
-    raw = sio.loadmat('dynamicData/matlab.mat')
+    raw = sio.loadmat('dynamicData/'+inputFile+'.mat')
     dataFlight = raw['flightdata']
     dataNames = dataFlight.dtype.names
 
@@ -21,5 +22,5 @@ def rawToCSV():
         data = dataFlight[name][0,0]['data'][0,0].flatten()
         dict[name] = data
     df = pd.DataFrame(data=dict)
-    df.to_csv('dynamicData/data.csv', index=False)
+    df.to_csv('dynamicData/'+outputFile+'.csv', index=False)
     return
