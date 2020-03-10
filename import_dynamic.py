@@ -25,4 +25,22 @@ def matToCSV(inputFile,outputFile):
     df.to_csv('dynamicData/'+outputFile+'.csv', index=False)
     return
 
+def sliceTime(fileName,t0,duration):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Get data from .csv file starting from t0, until t0+duration
+    #
+    # Input:    fileName [String]       Name of the .csv file
+    #           t0 [Value]              Starting time
+    #           duration [Value]        Time duration
+    # Output:   dfTime [Dataframe]      Pandas dataframe containing data from t0 until t0+duration
+    #
+    #----------------------------------------------------------------------------------------------
+    df = pd.read_csv('dynamicData/'+fileName+'.csv')
+    dfTime = df.loc[(df['time'] >= t0) & (df['time'] <= t0+duration)]
+
+    return dfTime
+
+
+
 #matToCSV('reference','reference')
