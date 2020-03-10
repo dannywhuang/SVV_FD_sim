@@ -170,6 +170,10 @@ class ParametersOld:
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
+
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]
         self.CD0 = 0.04 # Zero lift drag coefficient [ ]
@@ -193,13 +197,15 @@ class ParametersOld:
         self.Vh_V = 1  # [ ]self.
         self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
         self.xcg = 0.25 * self.c
-        # Constant values concerning atmosphere and gravity
 
+        # Constant values concerning atmosphere and gravity
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
         self.lamb = -0.0065  # temperature gradient in ISA [K/m]
         self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
         self.R      = 287.05  # specific gas constant [m^2/sec^2K]
         self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
 
         # air density [kg/m^3]
         self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((g / (self.lamb *self.R)) + 1)))
@@ -241,6 +247,7 @@ class ParametersOld:
         self.Cmu = +0.06990
         self.Cmadot = +0.17800
         self.Cmq = -8.79415
+        self.CmTc = -0.0064
 
         self.CYb = -0.7500
         self.CYbdot = 0
@@ -262,7 +269,6 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-
 def main():
     #invoking functions should be done in main()
     paramPhugoid = ParametersOld('dynamic','reference',3237) #Phugoid from reference post_flight_datasheet
@@ -283,7 +289,6 @@ def main():
 
 
     return
-
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
