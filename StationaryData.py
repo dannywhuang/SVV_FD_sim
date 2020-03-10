@@ -12,8 +12,9 @@ def readStationary():
     # Reading the data of the stationary measurement series, which are saved in a excel file
     #
     # Input:    none
-    # Output:   meas1 [array]                           Array containing the measurements: [hp,Vi,alpha,FFl,FFr,Fused,Temp]
-    #           meas2 [array]                           Array containing the measurements: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
+    # Output:   meas1 [array]       Data of CL-CD Series 1: [hp,Vi,alpha,FFl,FFr,Fused,Temp]
+    #           measele [array]     Data of Elevator Trim Curve: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
+    #           measshift [array]   Data of shift in cg: [Position,Fused]
     #
     #----------------------------------------------------------------------------------------------
 
