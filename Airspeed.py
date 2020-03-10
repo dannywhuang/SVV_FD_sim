@@ -5,11 +5,11 @@ def calcV(param, meas):
     '''
     This function calculates both the equivalent airspeed and the reduced equivalent airspeed for every measurement.
     ----
-    Input:  param [class]                           constant parameters
-            meas [array]                            meassurements taken (serie 2.2)
+    Input:  param [class]               constant parameters
+            meas [array]                meassurements taken
     
-    Output: Ve [array]                              equivalent airspeed
-            VeRed [array]                            reduced quivalent airspeed
+    Output: Ve [array]                  equivalent airspeed
+            VeRed [array]               reduced quivalent airspeed
     '''
 
     # Constant values
@@ -28,7 +28,7 @@ def calcV(param, meas):
     hp       = meas['hp']
 
     # Function values
-    W = 0#weight function ...
+    W = 123#weight function ...
 
     # Calculation
     p = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))

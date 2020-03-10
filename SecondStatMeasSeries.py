@@ -1,13 +1,14 @@
+import pandas as pd 
 
 def calcElevEffectiveness(param, secMeasSeries_2):
     '''
     This function calculates the elevator effectiveness Cmdelta, which is a constant value found from
     the measurements when changing xcg.
     ----
-    Input:  param [class]                           constant parameters
-            secMeasSeries_2 [array]                 meassurements taken (serie 2.2)
+    Input:  param [class]                       constant parameters
+            secMeasSeries_2 [array]             meassurements taken (serie 2.2)
     
-    Output: Cmdelta [float]                         elevator effectiveness
+    Output: Cmdelta [float]                     elevator effectiveness
     '''
 
     # Constant values
@@ -17,9 +18,9 @@ def calcElevEffectiveness(param, secMeasSeries_2):
     delta2 = delta[1]
 
     # Function values
-    CN = 0#lift function ...
-    xcg1 = 0#weight function ...
-    xcg2 = 0#weight function ...
+    CN = 123#lift function ...
+    xcg1 = 123#weight function ...
+    xcg2 = 123#weight function ...
 
     Cmdelta = ( CN * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
 
@@ -42,8 +43,8 @@ def calElevDeflection(param, secMeasSeries_1, secMeasSeries_2):
     delta = secMeasSeries_1['delta']
 
     # Function values
-    Tcs = 0#thrust function ...
-    Tc = 0#thrust function ...
+    Tcs = 123#thrust function ...
+    Tc = 123#thrust function ...
     Cmdelta = calcElevEffectiveness(param, secMeasSeries_2)
 
     delta_Red = delta - CmTc * (Tcs - Tc) / Cmdelta
@@ -66,7 +67,7 @@ def calcElevContrForce(param, secMeasSeries_1):
     Fe = secMeasSeries_1['Fe']
 
     # Function values
-    W = 0#weight function ...
+    W = 123#weight function ...
 
     Fe_Red = Fe * Ws / W
 
@@ -95,7 +96,6 @@ def plotElevContrForceCurve():
 
     Output:   name [type]                             description of the variable
               name2 [type2]                           description fothe varaible2
-
     '''
 
 
