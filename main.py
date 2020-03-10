@@ -37,6 +37,7 @@ def calcResponse(t0,duration,fileName,param):
     #           duration [Value]    The duration of the response
     #           fileName [String]   Name of dynamic measurement data file, so reference or flighttest
     #           param [Class]       Class with paramaters of aircraft
+    #
     # Output:   XoutS [Array]       Array with state variable responses for symmetric
     #           YoutS [Array]       Array with output variable responses for symmetric
     #           XoutA [Array]       Array with state variable responses for asymmetric
@@ -250,6 +251,7 @@ class ParametersOld:
         # Output:   ParametersOld [Class]   Class containing the parameters
         #
         # ----------------------------------------------------------------------------------------------
+
         df = sliceTime(fileName,t0,1) # duration is set to 1 second but first element is always taken anyway
 
         # Stationary flight condition
@@ -259,7 +261,6 @@ class ParametersOld:
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
         self.m = 123  # use calculate weight function
-
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
@@ -301,12 +302,12 @@ class ParametersOld:
         self.gamma = 1.4 # 
 
         # air density [kg/m^3]
-        self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((g / (self.lamb *self.R)) + 1)))
-        self.W = self.m * self.g  # [N]       (aircraft weight)
+        # self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((self.g / (self.lamb *self.R)) + 1)))
+        # self.W = self.m * self.g  # [N]       (aircraft weight)
 
         # Constant values concerning aircraft inertia
-        self.muc = self.m / (self.rho * self.S * self.c)
-        self.mub = self.m / (self.rho * self.S * self.b)
+        # self.muc = self.m / (self.rho * self.S * self.c)
+        # self.mub = self.m / (self.rho * self.S * self.b)
         self.KX2 = 0.019
         self.KZ2 = 0.042
         self.KXZ = 0.002
@@ -319,18 +320,18 @@ class ParametersOld:
         self.depsda = 4 / (self.A + 2)  # Downwash gradient [ ]
 
         # Lift and drag coefficient
-        self.CL = 2 * self.W / (self.rho * self.V0 ** 2 * self.S)  # Lift coefficient [ ]
-        self.CD = self.CD0 + (self.CLa * self.alpha0) ** 2 / (pi * self.A * self.e)  # Drag coefficient [ ]
+        # self.CL = 2 * self.W / (self.rho * self.V0 ** 2 * self.S)  # Lift coefficient [ ]
+        # self.CD = self.CD0 + (self.CLa * self.alpha0) ** 2 / (pi * self.A * self.e)  # Drag coefficient [ ]
 
         # Stabiblity derivatives
-        self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        # self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CXu = -0.02792
         self.CXa = +0.47966  # Positive! (has been erroneously negative since 1993)
         self.CXadot = +0.08330
         self.CXq = -0.28170
         self.CXde = -0.03728
 
-        self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        # self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CZu = -0.37616
         self.CZa = -5.74340
         self.CZadot = -0.00350
@@ -362,6 +363,7 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
+        
 def main():
     tPhugoid = 3237
     tShortPeriod = 3635
@@ -395,8 +397,7 @@ def main():
     #plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
     #plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
-    return
+# if __name__ == "__main__":
+#     #this is run when script is started, dont change
+#     main()
 
-if __name__ == "__main__":
-    #this is run when script is started, dont change
-    main()

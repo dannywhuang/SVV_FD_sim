@@ -6,7 +6,7 @@ kts = 0.5144    # [m/s]
 deg = np.pi/180 # [rad]
 lbs = 0.4536    # [kg]
 
-def readStationary():
+def readStationary(inputFile):
     #----------------------------------------------------------------------------------------------
     #
     # Reading the data of the stationary measurement series, which are saved in a excel file
@@ -27,7 +27,7 @@ def readStationary():
     rows_meas1 = list(np.arange(1,24)) + list(np.arange(27+nr_meas1,84))
 
     # Reading the right rows in the excel file
-    read_meas1 = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',header=1,skiprows=rows_meas1)
+    read_meas1 = pandas.read_excel('staticData/'+inputFile+'.xlsx',header=1,skiprows=rows_meas1)
 
     # Transform the columns into lists
     hp    = read_meas1['hp'].tolist()
@@ -68,7 +68,7 @@ def readStationary():
     rows_measele = list(np.arange(1,55)) + list(np.arange(58+nr_measele,84))
 
     # Reading the right rows in the excel file
-    read_measele = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',header=1,skiprows=rows_measele)
+    read_measele = pandas.read_excel('staticData/'+inputFile+'.xlsx',header=1,skiprows=rows_measele)
 
     # Transform the columns into lists
     hp    = read_measele['hp'].tolist()
@@ -83,7 +83,7 @@ def readStationary():
     Temp  = read_measele['TAT'].tolist()
 
     # Create the output list
-    measele = [['hp','Vi','alpha','de','detr','Fe','FFl','FFr','Fused','Temp']]
+    measele = [['hp','Vi','alpha','delta','deltaTr','Fe','FFl','FFr','Fused','Temp']]
 
     # Create the rows containing the measurements
     for i in range(2,len(hp)):
@@ -113,7 +113,7 @@ def readStationary():
     row_measposition = list(np.arange(1,70)) + list(np.arange(71,84))
 
     # Reading the right rows in the excel file
-    measposition = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',skiprows=row_measposition)
+    measposition = pandas.read_excel('staticData/'+inputFile+'.xlsx',skiprows=row_measposition)
 
     # Add the first and second position to a list
     position = [float(measposition['Unnamed: 2']),float(measposition['Unnamed: 7'])]
@@ -122,7 +122,7 @@ def readStationary():
     rows_measshift = list(np.arange(1,72)) + list(np.arange(76,84))
 
     # Reading the right rows in the excel file
-    read_measshift = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx', header=1, skiprows=rows_measshift)
+    read_measshift = pandas.read_excel('staticData/'+inputFile+'.xlsx', header=1, skiprows=rows_measshift)
 
     # Transform the columns into lists
     Fused = read_measshift['F. used'].tolist()
@@ -143,3 +143,5 @@ def readStationary():
     measshift = np.array(measshift)
 
     return meas1,measele,measshift
+
+a = readStationary('reference')

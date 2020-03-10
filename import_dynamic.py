@@ -2,17 +2,16 @@ import scipy.io as sio
 import pandas as pd
 import numpy as np
 
-
 def matToCSV(inputFile):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Converts .mat to .csv file
-    #
-    # Input:    inputFile [String]      Name of the .mat file to be converted to .csv
-    #
-    # Output:   None
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    Converts .mat to .csv file
+    ----
+    Input:  inputFile [String]      Name of the .mat file
+            outputFile [String]     Name of the .csv file
+
+    Output: None
+    '''
+
     raw = sio.loadmat('dynamicData/'+inputFile+'.mat')
     dataFlight = raw['flightdata']
     dataNames = dataFlight.dtype.names
@@ -79,16 +78,16 @@ def convertToSI(inputFile):
 
 
 def sliceTime(fileName,t0,duration):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Get data from .csv file starting from t0, until t0+duration
-    #
-    # Input:    fileName [String]       Name of the .csv file
-    #           t0 [Value]              Starting time
-    #           duration [Value]        Time duration
-    # Output:   dfTime [Dataframe]      Pandas dataframe containing data from t0 until t0+duration
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    Get data from .csv file starting from t0, until t0+duration
+    ----
+    Input:  fileName [String]       Name of the .csv file
+            t0 [Value]              Starting time
+            duration [Value]        Time duration
+
+    Output: dfTime [Dataframe]      Pandas dataframe containing data from t0 until t0+duration
+    '''
+
     df = pd.read_csv('dynamicData/'+fileName+'.csv')
     dfTime = df.loc[(df['time'] >= t0) & (df['time'] <= t0+duration)]
 
@@ -97,3 +96,4 @@ def sliceTime(fileName,t0,duration):
 
 #convertToSI('reference')
 #matToCSV('reference')
+
