@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+from numpy import sqrt
 import os
 
+from main import ParametersOld
 
+# To create files
 def createFolder(directory):
     '''
     DESCRIPTION:    Create an empty folder
@@ -21,7 +24,7 @@ def createFolder(directory):
         print ('Error: Creating directory. ' +  directory)
     return
 
-
+# To create files
 def excelToCSV(inputFile):
     '''
     DESCRIPTION:    Converting measurement data from excel file to csv file
@@ -47,7 +50,7 @@ def excelToCSV(inputFile):
     static2b.to_csv('staticData/CSV_'+inputFile+'/static2b.csv', index=False)
     return 
 
-
+# To create files
 def convertStaticToSI(inputFile):
     '''
     DESCRIPTION:    Converts static measurement series units to SI units
@@ -103,7 +106,43 @@ def convertStaticToSI(inputFile):
     df2b.to_csv('staticData/CSV_'+inputFile+'/static2b_SI.csv',index=False)
     return
 
+# To create files
+def thrustToDAT(inputFile, SI=True):
 
+    createFolder('staticData/thrust_'+inputFile+'/static1')
+    createFolder('staticData/thrust_'+inputFile+'/static2a')
+    createFolder('staticData/thrust_'+inputFile+'/static2b')
+
+    thrustData1 = {}
+    thrustData2a = {}
+    thrustData2b = {}
+
+    # pressure altitude, hp
+    dataNames = ['hp','Mach','DeltaTisa','FFl','FFr']
+
+    for name in dataNames:
+        if name in ['hp','FFl','FFr']:
+            data1  = staticMeas('static1', 'reference', SI)[name].to_numpy()
+            data2a = staticMeas('static2a', 'reference', SI)[name].to_numpy()
+            data2b = staticMeas('static2b', 'reference', SI)[name].to_numpy()
+        
+        elif name in ['Mach','DeltaTisa']:
+            data1  = staticFlightCondition('static1', 'reference', SI)[name].to_numpy()
+            data2a = staticFlightCondition('static2a', 'reference', SI)[name].to_numpy()
+            data2b = staticFlightCondition('static2b', 'reference', SI)[name].to_numpy()
+        thrustData1[name]  = data1
+        thrustData2a[name] = data2a
+        thrustData2b[name] = data2b
+    df1  = pd.DataFrame(data=thrustData1)
+    df2a = pd.DataFrame(data=thrustData2a)
+    df2b = pd.DataFrame(data=thrustData2b)
+
+    df1.to_csv('staticData/thrust_'+inputFile+'/static1/matlab.dat',index=False)
+    df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/matlab.dat',index=False)
+    df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/matlab.dat',index=False)
+    return
+
+# Return data from files
 def staticMeas(inputFile, dataSet, SI=True):
     '''
     DESCRIPTION:    Get data from .csv file
@@ -116,6 +155,7 @@ def staticMeas(inputFile, dataSet, SI=True):
     OUTPUT:\n
     ... df [Dataframe]:             Pandas dataframe containing data
     '''
+
     if SI == True:
         df = pd.read_csv('staticData/CSV_'+dataSet+'/'+inputFile+'_SI.csv')
     elif SI == False:
@@ -124,24 +164,93 @@ def staticMeas(inputFile, dataSet, SI=True):
         raise ValueError("Incorrect SI input; set it either to '=False', '=True' or leave it empty")
     return df
 
+# Return data from files
+def staticFlightCondition(inputFile, dataSet, SI=True):
+    '''
+    DESCRIPTION:    This function calculates both the equivalent airspeed and the reduced equivalent airspeed for every measurement.
+    ========
+    INPUT:\n
+    ... param [Class]:              Constant parameters\n
+    ... meas [Dataframe]:           Pandas dataframe containing measurement data\n
 
+    OUTPUT:\n
+    ... Ve [array]:                 Numpy array containing equivelent airspeed\n
+    ... VeRed [array]:              Numpy array containing reduced equivalent airspeed
+    '''
+
+    meas = staticMeas(inputFile, dataSet, SI)
+    param = ParametersOld()
+
+    # Constant values
+    pres0 = param.pres0
+    rho0  = param.rho0 
+    Temp0 = param.Temp0 
+    g0    = param.g 
+    Ws    = param.Ws
+
+    gamma = param.gamma
+    lamb  = param.lamb 
+    R     = param.R
+
+    Vc       = meas['Vi'].to_numpy()
+
+    TempMeas = meas['TAT'].to_numpy()
+    hp       = meas['hp'].to_numpy()
+
+    # Function values
+    W = 123#weight function ...
+
+    # Calculation
+    pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
+    Mach = sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
+    Temp = TempMeas / ( 1 + (lamb - 1)/2 * Mach**2 )
+    a = sqrt(gamma * R * Temp)
+    Vt = Mach * a
+    rho = pres / (R * Temp)
+    Ve = Vt * sqrt(rho / rho0)
+
+    VeRed = Ve * sqrt( Ws / W )
+
+    Tisa = Temp0 + lamb * meas['hp'].to_numpy()
+    DeltaTisa = Temp - Tisa
+
+    staticFlightCond = {}
+    dataNames = ['pres','Mach','Temp','a','Vt','rho','Ve','VeRed','DeltaTisa']
+    for name in dataNames:
+        staticFlightCond[name] = locals()[name]
+    staticFlightCond = pd.DataFrame(data=staticFlightCond)
+    return staticFlightCond
+
+
+''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
+# thrustToDAT('reference', SI=True)
+
+
 
 
 
 
 
 ''' Delete this part once understood: to see how the functions work '''
-# static1  = staticMeas('static1', 'reference', SI=False)
-# static2a = staticMeas('static2a', 'reference', SI=False)
-# static2b = staticMeas('static2b', 'reference', SI=False)
+static1  = staticMeas('static1', 'reference', SI=False)
+static2a = staticMeas('static2a', 'reference', SI=False)
+static2b = staticMeas('static2b', 'reference', SI=False)
 
-# static1_SI  = staticMeas('static1', 'reference')
-# static2a_SI = staticMeas('static2a', 'reference')
-# static2b_SI = staticMeas('static2b', 'reference')
+static1_SI  = staticMeas('static1', 'reference')
+static2a_SI = staticMeas('static2a', 'reference')
+static2b_SI = staticMeas('static2b', 'reference')
 
-# print(static1['hp'].to_numpy(), static1_SI['hp'].to_numpy(),'\n')
-# print(static2a['Vi'].to_numpy(), static2a_SI['Vi'].to_numpy(),'\n')
-# print(static2b['TAT'].to_numpy(), static2b_SI['TAT'].to_numpy(),'\n')
+staticCond1  = staticFlightCondition('static1', 'reference', SI=True)
+staticCond2a = staticFlightCondition('static2a', 'reference', SI=True)
+staticCond2b = staticFlightCondition('static2b', 'reference', SI=True)
+
+print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
+print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
+print('meassured air temp, static2b: ',static2b['TAT'].to_numpy(),'/ meassured air temp, static2b in SI: ', static2b_SI['TAT'].to_numpy(),'\n')
+
+print('true airspeed, static1 in SI: ',staticCond1['Vt'].to_numpy(),'/ Mach number, static1 in SI: ', staticCond1['Mach'].to_numpy(),'\n')
+print('reduced equivalent airspeed, static2a in SI: ',staticCond2a['VeRed'].to_numpy(),'/ local pressure, static2a in SI: ', staticCond2a['pres'].to_numpy(),'\n')
+print('local air density, static2b in SI: ',staticCond2b['rho'].to_numpy(),'/ corrected local temperature, static2b in SI: ', staticCond2b['Temp'].to_numpy(),'\n')
 
