@@ -1,20 +1,22 @@
 
-from math import sqrt
+from numpy import sqrt
 
 
 def calcV(param, meas):
     '''
-    This function calculates both the equivalent airspeed and the reduced equivalent airspeed for every measurement.
-    ----
-    Input:      param [class]                           constant parameters
-                meas [Dataframe]                        meassurements taken
-    
-    Output:     Ve [Dataframe]                          equivalent airspeed
-                VeRed [Dataframe]                       reduced quivalent airspeed
+    DESCRIPTION:    This function calculates both the equivalent airspeed and the reduced equivalent airspeed for every measurement.
+    ========
+    INPUT:\n
+    ... param [Class]:              Constant parameters\n
+    ... meas [Dataframe]:           Pandas dataframe containing measurement data\n
+
+    OUTPUT:\n
+    ... Ve [array]:                 Numpy array containing equivelent airspeed\n
+    ... VeRed [array]:              Numpy array containing reduced equivalent airspeed
     '''
 
     # Constant values
-    pres0 = param.p0
+    pres0 = param.pres0
     rho0  = param.rho0 
     Temp0 = param.Temp0 
     g0    = param.g 
@@ -24,10 +26,10 @@ def calcV(param, meas):
     lamb  = param.lamb 
     R     = param.R
 
-    V        = meas['Vi']
+    V        = meas['Vi'].to_numpy()
 
-    TempMeas = meas['TAT']
-    hp       = meas['hp']
+    TempMeas = meas['TAT'].to_numpy()
+    hp       = meas['hp'].to_numpy()
 
     # Function values
     W = 123#weight function ...
@@ -44,3 +46,23 @@ def calcV(param, meas):
     VeRed = Ve * sqrt( Ws / W )
 
     return Ve, VeRed
+
+
+
+
+
+
+''' Delete this part once understood: to see how functions work '''
+from import_static import staticMeas
+from import_dynamic import sliceTime
+from main import ParametersOld
+
+param = ParametersOld()
+static1  = staticMeas('static1' , 'reference')
+static2a = staticMeas('static2a', 'reference')
+static2b = staticMeas('static2b', 'reference')
+
+Ve, VeRed = calcV(param, static2a)
+
+print('\nEquivalent airspeed:',Ve, '\nReduced equivalent airspeed:', VeRed, '\n')
+

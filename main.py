@@ -11,39 +11,37 @@ from matplotlib import rc
 g = 9.81
 
 def sampleFunction(param):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Short description of what the function does
-    #
-    # Input:    name [type]                             description of the variable
-    #           name2 [type2]                           description of the variable2
-    #           ...                                     ...
-    # Output:   name [type]                             description of the variable
-    #           name2 [type2]                           description fothe varaible2
-    #           ...                                     ...
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Function description
+    ========
+    INPUT:\n
+    ... param [Type]:               Parameter description\n
+    ... param [Type]:               Parameter description\n
+
+    OUTPUT:\n
+    ... param [Type]:               Parameter description
+    '''
 
     s = param.b+param.S+param.c
     return s
 
 
 def calcResponse(t0,duration,fileName,param):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Calculate responses using dynamic measurement data
-    #
-    # Input:    t0 [Value]          The time at which the response starts
-    #           duration [Value]    The duration of the response
-    #           fileName [String]   Name of dynamic measurement data file, so reference or flighttest
-    #           param [Class]       Class with paramaters of aircraft
-    #
-    # Output:   XoutS [Array]       Array with state variable responses for symmetric
-    #           YoutS [Array]       Array with output variable responses for symmetric
-    #           XoutA [Array]       Array with state variable responses for asymmetric
-    #           YoutS [Array]       Array with output variable responses for asymmetric
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Calculate responses using dynamic measurement data
+    ========
+    INPUT:\n
+    ... t0 [Value]:                 The time at which the response starts\n
+    ... duration [Value]:           The duration of the response\n
+    ... fileName [String]:          Name of dynamic measurement data file, so reference or flighttest\n
+    ... param [Class]:              Class with paramaters of aircraft\n
+
+    OUTPUT:\n
+    ... XoutS [Array]:              Array with state variable responses for symmetric\n
+    ... YoutS [Array]:              Array with output variable responses for symmetric\n
+    ... XoutA [Array]:              Array with state variable responses for asymmetric\n
+    ... YoutS [Array]:              Array with output variable responses for asymmetric
+    '''
 
     # get state matrices using aircraft parameters
     As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
@@ -75,14 +73,15 @@ def calcResponse(t0,duration,fileName,param):
 
 
 def stateSpace(param):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Calculate state-space matrices for symmetric and asymmetric equations of motion
-    #
-    # Input:    param [Class]                           Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py
-    # Output:   As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]     State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Calculate state-space matrices for symmetric and asymmetric equations of motion
+    ========
+    INPUT:\n
+    ... param [Class]:                          Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+    
+    OUTPUT:\n
+    ... As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]:    State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
+    '''
 
     C1s = np.matrix([[ -2*param.muc*(param.c/param.V0) , 0 , 0 , 0 ],
                      [ 0 , (param.CZadot-2*param.muc)*(param.c/param.V0) , 0 , 0 ],
@@ -130,17 +129,19 @@ def stateSpace(param):
 
 
 def plotMotionsTest(fileName,t0,duration,motionName):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Plot eigenmotions from flight test data
-    #
-    # Input:    fileName [String]                       File name of flight test data, converted to SI units
-    #           t0 [Value]                              Starting time from data that needs to be plotted
-    #           duration [Value]                        The amount of seconds after t0 that need to be plotted
-    #           motionName [String]                     Name of motion that needs to be plotted, currently supported: 'phugoid','short period','dutch roll'
-    # Output:   None
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Plot eigenmotions from flight test data
+    ========
+    INPUT:\n
+    ... fileName [String]:          File name of flight test data, converted to SI units\n
+    ... t0 [Value]:                 Starting time from data that needs to be plotted\n
+    ... duration [Value]:           The amount of seconds after t0 that need to be plotted\n
+    ... motionName [String]:        Name of motion that needs to be plotted, currently supported: 'phugoid','short period','dutch roll'\n
+
+    OUTPUT:\n
+    ... None
+    '''
+
     if 'SI' not in fileName:
         print('Please use the file name of the flight data in SI units')
         return
@@ -239,18 +240,20 @@ def plotMotionsTest(fileName,t0,duration,motionName):
 
 
 class ParametersOld:
+    '''
+        DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
+        ========
+        INPUT:\n
+        ... Can be left empty when dealing with the static measurement series \n
+        ... fileName [String]:          As default set to 'reference'. This is the name of the CSV file containing all dynamic measurements\n
+        ... t0 [Value]:                 As default set to 10. At what time do you want the stationary flight condition variables?\n
+
+        OUTPUT:\n
+        ... ParametersOld [Class]:      Class containing the parameters\n
+        '''
+
     #initial unimproved parameters from appendix C
-    def __init__(self,fileName,t0):
-        # ----------------------------------------------------------------------------------------------
-        #
-        # Short description of what the function does
-        #
-        # Input:
-        #           fileName [String]       If you choose dynamic, what is the fileName of the .csv file? This gives you an option to choose between reference data and actual flight test data
-        #           t0 [Value]              At what time do you want the stationary flight condition variables?
-        # Output:   ParametersOld [Class]   Class containing the parameters
-        #
-        # ----------------------------------------------------------------------------------------------
+    def __init__(self, fileName = 'reference', t0=3000):
 
         df = sliceTime(fileName,t0,1) # duration is set to 1 second but first element is always taken anyway
 
@@ -372,7 +375,7 @@ def main():
     tAperRoll = 3550
     tSpiral = 3920
     # create parameters for different motions from data
-    paramPhugoid = ParametersOld('reference',tPhugoid) #Create parameters for phugoid motion
+    paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
 
     # create state space matrices for phugoid
     As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(paramPhugoid)
