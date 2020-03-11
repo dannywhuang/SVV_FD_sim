@@ -111,7 +111,7 @@ def convertStaticToSI(inputFile):
 
 
 # To create files
-def thrustToDAT(inputFile, SI=True):
+def thrustToDAT(inputFile, SI=True, standard=False):
     '''
     DESCRIPTION:    Creates a dat file names 'matlab.dat' containing all necessary data to be used for the thrust calculations. This data is obtained from the created csv files and some parameters will be calculated before putting everyting in the created .dat file.
     ========
@@ -123,9 +123,7 @@ def thrustToDAT(inputFile, SI=True):
     ... None
     '''
 
-    createFolder('staticData/thrust_'+inputFile+'/static1')
-    createFolder('staticData/thrust_'+inputFile+'/static2a')
-    createFolder('staticData/thrust_'+inputFile+'/static2b')
+    param = ParametersOld()
 
     thrustData1 = {}
     thrustData2a = {}
@@ -136,9 +134,17 @@ def thrustToDAT(inputFile, SI=True):
 
     for name in dataNames:
         if name in ['hp','FFl','FFr']:
-            data1  = staticMeas('static1', 'reference', SI)[name].to_numpy()
-            data2a = staticMeas('static2a', 'reference', SI)[name].to_numpy()
-            data2b = staticMeas('static2b', 'reference', SI)[name].to_numpy()
+            if standard == True and name in ['FFl','FFr']:
+                len1   = np.size(staticMeas('static1', 'reference', SI)[name].to_numpy())
+                data1  = np.ones(len1)*param.ms
+                len2a  = np.size(staticMeas('static2a', 'reference', SI)[name].to_numpy())
+                data2a = np.ones(len2a)*param.ms
+                len2b  = np.size(staticMeas('static2b', 'reference', SI)[name].to_numpy())
+                data2b = np.ones(len2b)*param.ms
+            else:
+                data1  = staticMeas('static1', 'reference', SI)[name].to_numpy()
+                data2a = staticMeas('static2a', 'reference', SI)[name].to_numpy()
+                data2b = staticMeas('static2b', 'reference', SI)[name].to_numpy()
         
         elif name in ['Mach','DeltaTisa']:
             data1  = staticFlightCondition('static1', 'reference', SI)[name].to_numpy()
@@ -151,9 +157,22 @@ def thrustToDAT(inputFile, SI=True):
     df2a = pd.DataFrame(data=thrustData2a)
     df2b = pd.DataFrame(data=thrustData2b)
 
-    df1.to_csv('staticData/thrust_'+inputFile+'/static1/matlab.dat',index=False,sep=' ',header=False)
-    df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/matlab.dat',index=False,sep=' ',header=False)
-    df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/matlab.dat',index=False,sep=' ',header=False)
+    if standard == True:
+        createFolder('staticData/thrust_'+inputFile+'/static1/standard')
+        createFolder('staticData/thrust_'+inputFile+'/static2a/standard')
+        createFolder('staticData/thrust_'+inputFile+'/static2b/standard')
+
+        df1.to_csv('staticData/thrust_'+inputFile+'/static1/standard/matlab.dat',index=False,sep=' ',header=False)
+        df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/standard/matlab.dat',index=False,sep=' ',header=False)
+        df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/standard/matlab.dat',index=False,sep=' ',header=False)
+    elif standard == False:
+        createFolder('staticData/thrust_'+inputFile+'/static1')
+        createFolder('staticData/thrust_'+inputFile+'/static2a')
+        createFolder('staticData/thrust_'+inputFile+'/static2b')
+
+        df1.to_csv('staticData/thrust_'+inputFile+'/static1/matlab.dat',index=False,sep=' ',header=False)
+        df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/matlab.dat',index=False,sep=' ',header=False)
+        df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/matlab.dat',index=False,sep=' ',header=False)
     return
 
 
@@ -163,8 +182,8 @@ def staticMeas(inputFile, dataSet, SI=True):
     DESCRIPTION:    Get data from .csv file
     ========
     INPUT:\n
-    ... inputFile [String]:         Name of the .csv file\n
-    ... dataSet [String]:           Name of the excel file (e.g. 'reference' or 'actual' )\n
+    ... inputFile [String]:         Name of the excel file (e.g. 'reference' or 'actual' )\n
+    ... dataSet [String]:           Name of data file (e.g. 'static1', 'static2a' or 'static2b'\n
     ... SI [Condition]:             By default set to SI=True\n
 
     OUTPUT:\n
@@ -172,9 +191,9 @@ def staticMeas(inputFile, dataSet, SI=True):
     '''
 
     if SI == True:
-        df = pd.read_csv('staticData/CSV_'+dataSet+'/'+inputFile+'_SI.csv')
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'_SI.csv')
     elif SI == False:
-        df = pd.read_csv('staticData/CSV_'+dataSet+'/'+inputFile+'.csv')
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'.csv')
     else:
         raise ValueError("Incorrect SI input; set it either to '=False', '=True' or leave it empty")
     return df
@@ -238,10 +257,35 @@ def staticFlightCondition(inputFile, dataSet, SI=True):
     return staticFlightCond
 
 
+# Return data from files
+def staticThrust(inputFile, dataSet, standard=False):
+    '''
+    DESCRIPTION:    This function reads the created thrust file. 
+    ========
+    INPUT:\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+    ... dataSet [String]:               Name of data set; choose between 'static1', 'static2a' or 'static2b'\n
+
+    OUTPUT:\n
+    ... df [Dataframe]:                 Pandas dataframe containing Thrust of the left and right engine & the total Thrust.
+    '''
+
+    if standard == True:
+        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t')
+        df.columns = ['Tpl','Tpr']
+        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+    elif standard == False:
+        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t')
+        df.columns = ['Tpl','Tpr']
+        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+    return df
+
+
 ''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
-thrustToDAT('reference', SI=True)
+# thrustToDAT('reference', SI=True, standard=False)
+# thrustToDAT('reference', SI=True, standard=True)
 
 
 
@@ -262,6 +306,11 @@ thrustToDAT('reference', SI=True)
 # staticCond2a = staticFlightCondition('static2a', 'reference', SI=True)
 # staticCond2b = staticFlightCondition('static2b', 'reference', SI=True)
 
+# staticThrust1  = staticThrust('reference','static1',standard=False)
+# staticThrust2a = staticThrust('reference','static2a',standard=False)
+# staticThrust2b = staticThrust('reference','static2b',standard=False)
+
+
 # print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
 # print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
 # print('meassured air temp, static2b: ',static2b['TAT'].to_numpy(),'/ meassured air temp, static2b in SI: ', static2b_SI['TAT'].to_numpy(),'\n')
@@ -270,3 +319,6 @@ thrustToDAT('reference', SI=True)
 # print('reduced equivalent airspeed, static2a in SI: ',staticCond2a['VeRed'].to_numpy(),'/ local pressure, static2a in SI: ', staticCond2a['pres'].to_numpy(),'\n')
 # print('local air density, static2b in SI: ',staticCond2b['rho'].to_numpy(),'/ corrected local temperature, static2b in SI: ', staticCond2b['Temp'].to_numpy(),'\n')
 
+# print('local thrust left engine, static 1 in [N?]: ',staticThrust1['Tpl'].to_numpy(),'/ local total thrust, static 1 in [N?]: ', staticThrust1['Tp'].to_numpy(),'\n')
+# print('local thrust right engine, static 2a in [N?]: ',staticThrust2a['Tpr'].to_numpy(),'/ local total thrust, static 2a in [N?]: ', staticThrust2a['Tp'].to_numpy(),'\n')
+# print('local thrust left engine, static 2b in [N?]: ',staticThrust2b['Tpl'].to_numpy(),'/ local total thrust, static 2b in [N?]: ', staticThrust2b['Tp'].to_numpy(),'\n')
