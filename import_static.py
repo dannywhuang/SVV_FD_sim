@@ -151,9 +151,9 @@ def thrustToDAT(inputFile, SI=True):
     df2a = pd.DataFrame(data=thrustData2a)
     df2b = pd.DataFrame(data=thrustData2b)
 
-    df1.to_csv('staticData/thrust_'+inputFile+'/static1/matlab.dat',index=False)
-    df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/matlab.dat',index=False)
-    df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/matlab.dat',index=False)
+    df1.to_csv('staticData/thrust_'+inputFile+'/static1/matlab.dat',index=False,sep=' ',header=False)
+    df2a.to_csv('staticData/thrust_'+inputFile+'/static2a/matlab.dat',index=False,sep=' ',header=False)
+    df2b.to_csv('staticData/thrust_'+inputFile+'/static2b/matlab.dat',index=False,sep=' ',header=False)
     return
 
 
@@ -241,7 +241,7 @@ def staticFlightCondition(inputFile, dataSet, SI=True):
 ''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True)
+thrustToDAT('reference', SI=True)
 
 
 
