@@ -11,22 +11,22 @@ Required libraries are:
 
 ## Functions to be finished
 - calcWeightCG()
-- calcLiftCoeff()
+- calcLiftCoeff() **Done Weight to be added**
 - calcDragCoeff()
-- calcThrust()
+- calcThrust() **Done**
 - calcAeroCoeff()
-- calcElevEffectiveness()
-- calcElevDeflection()
-- calcV()
-- calcElevContrForce()
+- calcElevEffectiveness() **Done Weight to be added**
+- calcElevDeflection() **Done Weight to be added**
+- calcV() **Changed to staticFlightCondition() with additional functionality**
+- calcElevContrForce() **Done Weight to be added**
 - calcEigenTest()
 - calcEigenState()
-- stateSpace() **Done**
-- calcResponse() **Done**
+- stateSpace() **Done Weight to be added**
+- calcResponse() **Done Weight to be added**
 - plotPolar()
-- plotElevTrimCurve()
+- plotElevTrimCurve() 
 - plotElevContrForceCurve()
 - plotResponse()
-- plotMotionsTest() **Done**
+- plotMotionsTest() **Done Weight to be added**
 
 
