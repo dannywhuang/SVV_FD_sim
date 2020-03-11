@@ -8,3 +8,25 @@ Required libraries are:
 - pandas
 - matplotlib
 - control
+
+## Functions to be finished
+- calcWeightCG()
+- calcLiftCoeff()
+- calcDragCoeff()
+- calcThrust()
+- calcAeroCoeff()
+- calcElevEffectiveness()
+- calcElevDeflection()
+- calcV()
+- calcElevContrForce()
+- calcEigenTest()
+- calcEigenState()
+- stateSpace() **Done**
+- calcResponse() **Done**
+- plotPolar()
+- plotElevTrimCurve()
+- plotElevContrForceCurve()
+- plotResponse()
+- plotMotionsTest() **Done**
+
+
