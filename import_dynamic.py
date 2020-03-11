@@ -81,7 +81,6 @@ def convertDynToSI(inputFile):
     return
 
 
-
 def sliceTime(fileName,t0,duration):
     '''
     DESCRIPTION:    Get data from .csv file starting from t0, until t0+duration

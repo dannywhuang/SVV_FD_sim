@@ -1,17 +1,20 @@
 import scipy as sc
 
+from main import ParametersOld
 
-def calcElevEffectiveness(param, static2b):
+
+def calcElevEffectiveness(static2b):
     '''
     DESCRIPTION:    This function calculates the elevator effectiveness (Cmdelta), which is a constant value found from the measurements when changing xcg.
     ========
     INPUT:\n
-    ... param [class]:              Constant parameters\n
     ... static2b [Dataframe]:       Panda dataframe containing the meassurements taken (serie 2b)\n
 
     OUTPUT:\n
     ... Cmdelta [float]:            Elevator effectiveness
     '''
+
+    param = ParametersOld()
 
     # Constant values
     cbar = param.c
@@ -26,17 +29,15 @@ def calcElevEffectiveness(param, static2b):
 
     # Calculation
     Cmdelta = ( CN * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
-    Cmdelta = -1.1642
 
     return Cmdelta
 
 
-def calcElevDeflection(param, static2a, static2b):
+def calcElevDeflection(static2a, static2b):
     '''
     DESCRIPTION:    This function calculates the reduced elevator deflection for each meassurement taken during the second stationary meassurement series.
     ========
     INPUT:\n
-    ... param [class]:              Constant parameters\n
     ... static2a [Dataframe]:       Panda dataframe containing the measurements taken (serie 2a)\n
     ... static2b [Dataframe]:       Panda dataframe containing the meassurements taken (serie 2b)\n
 
@@ -46,6 +47,8 @@ def calcElevDeflection(param, static2a, static2b):
     
     '''
 
+    param = ParametersOld()
+
     # Constant values
     CmTc = param.CmTc
     delta = static2a['delta'].to_numpy()
@@ -54,7 +57,7 @@ def calcElevDeflection(param, static2a, static2b):
     # Function values
     Tcs = 123#thrust function ...
     Tc = 123#thrust function ...
-    Cmdelta = calcElevEffectiveness(param, static2b)
+    Cmdelta = calcElevEffectiveness(static2b)
 
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
@@ -65,7 +68,7 @@ def calcElevDeflection(param, static2a, static2b):
     return deltaRed, Cma
 
 
-def calcElevContrForce(param, static2a):
+def calcElevContrForce(static2a):
     '''
     DESCRIPTION:    This function calculates the reduced elevator control force for each meassurement taken during the second stationary measurement series.
     ========
@@ -76,6 +79,8 @@ def calcElevContrForce(param, static2a):
     OUTPUT:\n
     ... Fe_Red [Arary]:             Numpy array containing the reduced elevator control force
     '''
+
+    param = ParametersOld()
 
     # Constant values
     Ws = param.Ws
@@ -128,17 +133,16 @@ def plotElevContrForceCurve():
 
 
 ''' Delete this part once understood: to see how functions work '''
-from import_static import staticMeas
-from main import ParametersOld
+# from import_static import staticMeas
 
-param = ParametersOld()
-static2a = staticMeas('static2a', 'reference')
-static2b = staticMeas('static2b', 'reference')
+# param = ParametersOld()
+# static2a = staticMeas('static2a', 'reference')
+# static2b = staticMeas('static2b', 'reference')
 
-Cmdelta       = calcElevEffectiveness(param, static2b)
-deltaRed, Cma = calcElevDeflection(param, static2a, static2b) 
-FeRed         = calcElevContrForce(param, static2a)
+# Cmdelta       = calcElevEffectiveness(static2b)
+# deltaRed, Cma = calcElevDeflection(static2a, static2b) 
+# FeRed         = calcElevContrForce(static2a)
 
-print('\nCmdelta =',Cmdelta, '\n')
-print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-print('reduced elevator control force:', FeRed, '\n')
+# print('\nCmdelta =',Cmdelta, '\n')
+# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
+# print('reduced elevator control force:', FeRed, '\n')
