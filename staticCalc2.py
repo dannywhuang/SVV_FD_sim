@@ -128,17 +128,17 @@ def plotElevContrForceCurve():
 
 
 ''' Delete this part once understood: to see how functions work '''
-from import_static import staticMeas
-from main import ParametersOld
+# from import_static import staticMeas
+# from main import ParametersOld
 
-param = ParametersOld()
-static2a = staticMeas('static2a', 'reference')
-static2b = staticMeas('static2b', 'reference')
+# param = ParametersOld()
+# static2a = staticMeas('static2a', 'reference')
+# static2b = staticMeas('static2b', 'reference')
 
-Cmdelta       = calcElevEffectiveness(param, static2b)
-deltaRed, Cma = calcElevDeflection(param, static2a, static2b) 
-FeRed         = calcElevContrForce(param, static2a)
+# Cmdelta       = calcElevEffectiveness(param, static2b)
+# deltaRed, Cma = calcElevDeflection(param, static2a, static2b) 
+# FeRed         = calcElevContrForce(param, static2a)
 
-print('\nCmdelta =',Cmdelta, '\n')
-print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-print('reduced elevator control force:', FeRed, '\n')
+# print('\nCmdelta =',Cmdelta, '\n')
+# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
+# print('reduced elevator control force:', FeRed, '\n')

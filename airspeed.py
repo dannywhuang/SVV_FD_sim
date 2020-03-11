@@ -53,16 +53,15 @@ def calcV(param, meas):
 
 
 ''' Delete this part once understood: to see how functions work '''
-from import_static import staticMeas
-from import_dynamic import sliceTime
-from main import ParametersOld
+# from import_static import staticMeas
+# from main import ParametersOld
 
-param = ParametersOld()
-static1  = staticMeas('static1' , 'reference')
-static2a = staticMeas('static2a', 'reference')
-static2b = staticMeas('static2b', 'reference')
+# param = ParametersOld()
+# static1  = staticMeas('static1' , 'reference')
+# static2a = staticMeas('static2a', 'reference')
+# static2b = staticMeas('static2b', 'reference')
 
-Ve, VeRed = calcV(param, static2a)
+# Ve, VeRed = calcV(param, static2a)
 
-print('\nEquivalent airspeed:',Ve, '\nReduced equivalent airspeed:', VeRed, '\n')
+# print('\nEquivalent airspeed:',Ve, '\nReduced equivalent airspeed:', VeRed, '\n')
 
