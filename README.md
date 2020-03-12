@@ -12,12 +12,12 @@ Required libraries are:
 ## Functions to be finished
 - calcWeightCG()
 - calcThrust() **Done**
-- calcLiftCoeff() **Put in calcAeroCoeff()**
-- calcDragCoeff() **Put in clacAeroCoeff()**
-- **new** calcAeroCoeff() **Weight, e, Cma, Cd0 and aoa0 to be added**
+- **put in calcAeroCoeff()** calcLiftCoeff()
+- **put in calcAeroCoeff()** calcDragCoeff()
+- calcAeroCoeff() **Weight, e, Cma, Cd0 and aoa0 to be added**
 - calcElevEffectiveness() **Done Weight to be added**
 - calcElevDeflection() **Done Weight to be added**
-- calcV() **Changed to staticFlightCondition() with additional functionality**
+- **put in staticFlightCondition()** calcV()
 - **new** staticFlightCondition() **Done Weight to be added**
 - calcElevContrForce() **Done Weight to be added**
 - calcEigenTest()
