@@ -137,10 +137,10 @@ def plotElevContrForceCurve():
 
 
 ''' Delete this part once understood: to see how functions work '''
-Cmdelta       = calcElevEffectiveness('reference')
-deltaRed, Cma = calcElevDeflection('reference') 
-FeRed         = calcElevContrForce('reference')
+# Cmdelta       = calcElevEffectiveness('reference')
+# deltaRed, Cma = calcElevDeflection('reference') 
+# FeRed         = calcElevContrForce('reference')
 
-print('\nCmdelta =',Cmdelta, '\n')
-print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-print('reduced elevator control force:', FeRed, '\n')
+# print('\nCmdelta =',Cmdelta, '\n')
+# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
+# print('reduced elevator control force:', FeRed, '\n')
