@@ -1,36 +1,87 @@
 #Initial numerical model before making improvements to parameters
 import numpy as np
 from math import cos, pi, sin, tan, pow
+from import_dynamic import sliceTime
+#import control.matlab as ml
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import rc
 
 #global constants
 g = 9.81
 
 def sampleFunction(param):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Short description of what the function does
-    #
-    # Input:    name [type]                             description of the variable
-    #           name2 [type2]                           description of the variable2
-    #           ...                                     ...
-    # Output:   name [type]                             description of the variable
-    #           name2 [type2]                           description fothe varaible2
-    #           ...                                     ...
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Function description
+    ========
+    INPUT:\n
+    ... param [Type]:               Parameter description\n
+    ... param [Type]:               Parameter description\n
+
+    OUTPUT:\n
+    ... param [Type]:               Parameter description
+    '''
 
     s = param.b+param.S+param.c
     return s
 
+
+def calcResponse(t0,duration,fileName,param):
+    '''
+    DESCRIPTION:    Calculate responses using dynamic measurement data
+    ========
+    INPUT:\n
+    ... t0 [Value]:                 The time at which the response starts\n
+    ... duration [Value]:           The duration of the response\n
+    ... fileName [String]:          Name of dynamic measurement data file, so reference or flighttest\n
+    ... param [Class]:              Class with paramaters of aircraft\n
+
+    OUTPUT:\n
+    ... XoutS [Array]:              Array with state variable responses for symmetric\n
+    ... YoutS [Array]:              Array with output variable responses for symmetric\n
+    ... XoutA [Array]:              Array with state variable responses for asymmetric\n
+    ... YoutS [Array]:              Array with output variable responses for asymmetric
+    '''
+
+    # get state matrices using aircraft parameters
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+
+    # create state space models
+    stateSpaceS = ml.ss(As,Bs,Cs,Ds)
+    stateSpaceA = ml.ss(Aa,Ba,Ca,Da)
+
+    # get data from the dynamic measurement file
+    dfTime = sliceTime(fileName,t0,duration)
+    time = dfTime['time']
+    delta_a = dfTime['delta_a']
+    delta_e = dfTime['delta_e']
+    delta_r = dfTime['delta_r']
+
+    # input variables
+    us = delta_e
+    ua = np.vstack((delta_a,delta_r)).T
+
+    # initial condition
+    x0s = [0 , 0 , 0 , dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*(param.c/dfTime['time'].to_numpy()[0])]
+    x0a = [0 , dfTime['Ahrs1_Roll'].to_numpy()[0] ,(dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)]
+
+    # calculate responses
+    YoutS, tS, XoutS = ml.lsim(stateSpaceS, us, time, x0s)
+    YoutA, tA, XoutA = ml.lsim(stateSpaceA, ua, time, x0a)
+    
+    return XoutS, YoutS, XoutA, YoutA, tS, tA
+
+
 def stateSpace(param):
-    #----------------------------------------------------------------------------------------------
-    #
-    # Calculate state-space matrices for symmetric and asymmetric equations of motion
-    #
-    # Input:    param [Class]                           Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py
-    # Output:   As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]     State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
-    #
-    #----------------------------------------------------------------------------------------------
+    '''
+    DESCRIPTION:    Calculate state-space matrices for symmetric and asymmetric equations of motion
+    ========
+    INPUT:\n
+    ... param [Class]:                          Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+    
+    OUTPUT:\n
+    ... As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]:    State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
+    '''
 
     C1s = np.matrix([[ -2*param.muc*(param.c/param.V0) , 0 , 0 , 0 ],
                      [ 0 , (param.CZadot-2*param.muc)*(param.c/param.V0) , 0 , 0 ],
@@ -76,20 +127,170 @@ def stateSpace(param):
 
     return As,Bs,Cs,Ds,Aa,Ba,Ca,Da
 
-class ParametersOld:
-    #initial unimproved parameters from appendix C
+
+def plotMotionsTest(fileName,t0,duration,motionName):
+    '''
+    DESCRIPTION:    Plot eigenmotions from flight test data
+    ========
+    INPUT:\n
+    ... fileName [String]:          File name of flight test data, converted to SI units\n
+    ... t0 [Value]:                 Starting time from data that needs to be plotted\n
+    ... duration [Value]:           The amount of seconds after t0 that need to be plotted\n
+    ... motionName [String]:        Name of motion that needs to be plotted, currently supported: 'phugoid','short period','dutch roll'\n
+
+    OUTPUT:\n
+    ... None
+    '''
+
+    if 'SI' not in fileName:
+        print('Please use the file name of the flight data in SI units')
+        return
+    else:
+        dfTime = sliceTime(fileName,t0,duration)
+        time = dfTime['time'].to_numpy()
+
+        if motionName=='phugoid' or motionName=='short period':
+
+            # get all variables
+            Vt0 = dfTime['Dadc1_tas'].to_numpy()[0]
+            Vt = dfTime['Dadc1_tas'].to_numpy()
+            ubar =  (Vt-Vt0)/Vt0
+            a0 = dfTime['vane_AOA'].to_numpy()[0]
+            a_stab = dfTime['vane_AOA'].to_numpy()-a0
+            theta0 = a0-dfTime['Ahrs1_Pitch'].to_numpy()[0]     # using theta0=gamma0 (see FD lectures notes page 95) and gamma = alpha-theta
+            theta_stab = dfTime['Ahrs1_Pitch'].to_numpy()-theta0
+            q = dfTime['Ahrs1_bPitchRate'].to_numpy()
+            delta_e = dfTime['delta_e'].to_numpy()
+
+            # creat4e figure
+            fig, axs = plt.subplots(2,3,figsize=(16,9),dpi=100)
+            plt.suptitle('State response to case: %s'%(motionName),fontsize=16)
+
+            #plot elevator deflection
+            gs = axs[0, 2].get_gridspec()
+            for ax in axs[:, 2]:
+                ax.remove()
+            axbig = fig.add_subplot(gs[:, 2])
+            axbig.plot(time,delta_e)
+            axbig.set_ylabel(r'$\delta_{e}$ [rad]', fontsize=12.0)
+            axbig.set_xlabel('time [s]', fontsize=12.0)
+
+            #plot \hat{u}, \alpha, \theta and q versus time
+            axs[0, 0].plot(time, ubar,label=r'$\hat{u}$')
+            axs[0, 0].set_ylabel(r'$\hat{u}$ [-]', fontsize=12.0)
+            axs[0, 0].grid()
+            axs[0,0].legend()
+
+            axs[0, 1].plot(time, a_stab)
+            axs[0, 1].set_ylabel(r'$\alpha$ [rad]', fontsize=12.0)
+            axs[0, 1].grid()
+
+            axs[1, 0].plot(time, theta_stab)
+            axs[1, 0].set_ylabel(r'$\theta$ [rad]', fontsize=12.0)
+            axs[1, 0].set_xlabel('time [s]', fontsize=12.0)
+            axs[1, 0].grid()
+
+            axs[1, 1].plot(time, q)
+            axs[1, 1].set_ylabel(r'$q$ [rad/s]', fontsize=12.0)
+            axs[1, 1].set_xlabel('time [s]', fontsize=12.0)
+            axs[1, 1].grid()
+
+            # set labelsize for ticks
+            axs[0, 0].tick_params(axis='both', which='major', labelsize=12)
+            axs[0, 0].tick_params(axis='both', which='minor', labelsize=12)
+            axs[0, 1].tick_params(axis='both', which='major', labelsize=12)
+            axs[0, 1].tick_params(axis='both', which='minor', labelsize=12)
+            axs[1, 0].tick_params(axis='both', which='major', labelsize=12)
+            axs[1, 0].tick_params(axis='both', which='minor', labelsize=12)
+            axs[1, 1].tick_params(axis='both', which='major', labelsize=12)
+            axs[1, 1].tick_params(axis='both', which='minor', labelsize=12)
+
+            # to make sure nothing overlaps
+            fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+            plt.show()
+
+        elif motionName=='dutch roll':
+
+            # get all variables
+            q = dfTime['Ahrs1_bPitchRate'].to_numpy()
+            r = dfTime['Ahrs1_bRollRate'].to_numpy()
+
+            # createe figrue
+            fig, axs = plt.subplots(figsize=(16, 9), dpi=100)
+            plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
+
+            # plot q and r
+            axs.plot(time, q,label='pitch rate')
+            axs.plot(time, r,label='roll rate')
+            axs.set_ylabel(r'$p,r$ [rad/s]', fontsize=12.0)
+            axs.set_xlabel('time [s]', fontsize=12.0)
+            axs.grid()
+            axs.legend()
+
+            # set tick size
+            axs.tick_params(axis='both', which='major', labelsize=12)
+            axs.tick_params(axis='both', which='minor', labelsize=12)
+
+            # to make sure nothing overlaps
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+            plt.show()
+    return
+
+class weightOld:
+
     def __init__(self):
 
-        # Stationary flight condition
-        self.hp0 = 123 # pressure altitude in the stationary flight condition [m]
-        self.V0 = 90 # true airspeed in the stationary flight condition [m/sec]
-        self.alpha0 = 0 # angle of attack in the stationary flight condition [rad]
-        self.th0 = 0 # pitch angle in the stationary flight condition [rad]
+        self.mpilot1 = 95                 # [kg]
+        self.mpilot2 = 92                 # [kg]
+        self.mcoordinator = 74            # [kg]
+        self.mobserver1L = 66             # [kg]
+        self.mobserver1R = 61             # [kg]
+        self.mobserver2L = 75             # [kg]
+        self.mobserver2R = 78             # [kg]
+        self.mobserver3L = 86             # [kg]
+        self.mobserver3R = 68             # [kg]
 
+        self.mblockfuel = 4050*0.45359237 # [kg]
+
+        self.position1 = 288
+        self.position2 = 134
+
+class ParametersOld:
+    '''
+        DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
+        ========
+        INPUT:\n
+        ... Can be left empty when dealing with the static measurement series \n
+        ... fileName [String]:          As default set to 'reference'. This is the name of the CSV file containing all dynamic measurements\n
+        ... t0 [Value]:                 As default set to 10. At what time do you want the stationary flight condition variables?\n
+
+        OUTPUT:\n
+        ... ParametersOld [Class]:      Class containing the parameters\n
+        '''
+
+    #initial unimproved parameters from appendix C
+    def __init__(self, fileName = 'reference', t0=3000):
+
+
+        df = sliceTime(fileName,t0,1) # duration is set to 1 second but first element is always taken anyway
+
+
+        # Stationary flight condition
+        self.hp0 = df['Dadc1_alt'].to_numpy()[0] # pressure altitude in the stationary flight condition [m]
+        self.V0 = df['Dadc1_tas'].to_numpy()[0] # true airspeed in the stationary flight condition [m/sec]
+        self.alpha0 = df['vane_AOA'].to_numpy()[0] # angle of attack in the stationary flight condition [rad]
+        self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
-        self.m = 8000 # mass [kg]
+
+        self.m = 6800  # use calculate weight function
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
+
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
 
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]
@@ -114,16 +315,18 @@ class ParametersOld:
         self.Vh_V = 1  # [ ]self.
         self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
         self.xcg = 0.25 * self.c
-        # Constant values concerning atmosphere and gravity
 
+        # Constant values concerning atmosphere and gravity
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
         self.lamb = -0.0065  # temperature gradient in ISA [K/m]
         self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
         self.R      = 287.05  # specific gas constant [m^2/sec^2K]
         self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
 
         # air density [kg/m^3]
-        self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((g / (self.lamb *self.R)) + 1)))
+        self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((self.g / (self.lamb *self.R)) + 1)))
         self.W = self.m * self.g  # [N]       (aircraft weight)
 
         # Constant values concerning aircraft inertia
@@ -162,6 +365,7 @@ class ParametersOld:
         self.Cmu = +0.06990
         self.Cmadot = +0.17800
         self.Cmq = -8.79415
+        self.CmTc = -0.0064
 
         self.CYb = -0.7500
         self.CYbdot = 0
@@ -219,11 +423,18 @@ def chareq_as(param):
     ev3 = np.roots([A3, B3, C3, D3])
 
 
-    return ev_dr,ev_drs, evdamped_ap, ev_spiral, ev3
-
+        
 def main():
-    #invoking functions should be done in main()
-    param = ParametersOld()
+    tPhugoid = 3237
+    tShortPeriod = 3635
+    tDutchRoll = 3717
+    tDutchRollYD = 3767
+    tAperRoll = 3550
+    tSpiral = 3920
+    # create parameters for different motions from data
+    paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
+
+    param = ParametersOld(fileName='reference',t0=tPhugoid)
 
     a_eig=eigval(param)
     print("eigenvalues ss: ", a_eig)
@@ -248,16 +459,18 @@ def main():
     # print("Ca: ", Ca)
     # print("Da: ", Da)
 
+    # simulate response using relevant parameters
+    XoutS, YoutS, XoutA, YoutA, tS, tA = calcResponse(tPhugoid,20,'reference',paramPhugoid)
 
-    return
 
+    #-----------------------------------------------------
+    # plot eigen motions from flight test data or reference data
+    #-----------------------------------------------------
+    plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
+    plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
+    plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
     main()
-
-
-
-
-
 

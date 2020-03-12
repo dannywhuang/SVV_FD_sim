@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.DS_Store
+.vscode/launch.json
+.vscode/settings.json
+dynamicData/.DS_Store
+staticData/.DS_Store
+staticData/thrust_reference/.DS_Store
+staticData/thrust_reference/static1/.DS_Store
+staticData/thrust_reference/static2a/.DS_Store
+staticData/thrust_reference/static2b/.DS_Store
