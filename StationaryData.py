@@ -125,7 +125,9 @@ def readcg(file_name='Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',nr_pax=9
     #           row_block = 18             Row containing the block fuel mass
     #           row_shift = 71             Row containing the shift
     #           row_start_meas = 75        Row containing the first measurement
-    # Output:   data [array]               Data of the second stationary measurement series: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
+    # Output:   mass [array]               Mass and corresponding seat: [Seat, Mass]
+    #           blockfuel [float]          The block fuel
+    #           data [array]               Fuel used for the initial and shifted position [Position,Fused]
     #
     #----------------------------------------------------------------------------------------------
 
