@@ -25,6 +25,60 @@ def sampleFunction(param):
     s = param.b+param.S+param.c
     return s
 
+def calcEigenState(As,Aa):
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    ========
+    INPUT:\n
+    ... As [Matrix]:                The symmetric state space matrix A
+    ... Aa [Matrix]:                The asymmetric state space matrix A
+
+    OUTPUT:\n
+    ... eigenSym [Array]:            Array with eigen values for As\n
+    ... eigenAsym [Array]:           Array with eigen values for Aa
+    '''
+    eigenSym = np.linalg.eig(As)
+    eigenAsym = np.linalg.eig(Aa)
+    return eigenSym,eigenAsym
+
+def calcEigenShortPeriod(param):
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+
+    OUTPUT:\n
+    ... lambda1 [Array]:            Array with eigen values for analytical model short period motion
+    '''
+    # Short period
+    A1 = 2*param.muc*param.KY2*(2*param.muc-param.CZadot)
+    B1 = -2*param.muc*param.KY2*param.CZa-(2*param.muc+param.CZq)*param.Cmadot-(2*param.muc-param.Czadot)*param.Cmq
+    C1 = param.CZa*param.Cmq-(2*param.muc+param.CZq)*param.Cma
+    p1 = [A1,B1,C1]
+    lambda1 = np.roots(p1)
+
+    return lambda1
+
+
+def calcEigenPhugoid(param):
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+
+    OUTPUT:\n
+    ... lambda2 [Array]:            Array with eigen values for analytical model phugoid motion
+    '''
+    # Phugoid
+    A2 = 2*param.muc*(param.CZa*param.Cmq-2*param.muc*param.Cma)
+    B2 = 2*param.muc*(param.CXu*param.Cma - param.Cmu*param.CXa) + param.Cmq*(param.CZu *param.CXa - param.CXu*param.CZa)
+    C2 = param.CZ0*(param.Cmu*param.CZa - param.CZu*param.Cma)
+    p2 = [A2,B2,C2]
+    lambda2 = np.roots(p2)
+    return lambda2
+
 
 def calcResponse(t0,duration,fileName,param):
     '''
@@ -434,6 +488,8 @@ def main():
     tSpiral = 3920
     # create parameters for different motions from data
     paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
+    paramShortPeriod = ParametersOld(fileName='reference',t0=tShortPeriod)
+
 
     param = ParametersOld(fileName='reference',t0=tPhugoid)
 
@@ -463,13 +519,19 @@ def main():
     # simulate response using relevant parameters
     XoutS, YoutS, XoutA, YoutA, tS, tA = calcResponse(tPhugoid,20,'reference',paramPhugoid)
 
+    eigenSym, eigenAsym = calcEigenState(As,Aa)
+    eigenPhugoid = calcEigenPhugoid(paramPhugoid)
+    print("State space symmetric eigenvalues",eigenSym)
+    print("Analytical phugoid eigenvalues",eigenPhugoid)
+
+
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
-    plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
-    plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
+    # plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
+    # plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
+    # plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
