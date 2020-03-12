@@ -1,9 +1,12 @@
 import scipy as sc
+import numpy as np
 
 from main import ParametersOld
+from import_static import staticMeas, staticThrust
+from staticCalc1 import calcLiftCoeff
 
 
-def calcElevEffectiveness(static2b):
+def calcElevEffectiveness(inputFile, SI=True):
     '''
     DESCRIPTION:    This function calculates the elevator effectiveness (Cmdelta), which is a constant value found from the measurements when changing xcg.
     ========
@@ -14,26 +17,25 @@ def calcElevEffectiveness(static2b):
     ... Cmdelta [float]:            Elevator effectiveness
     '''
 
+    # Import data
     param = ParametersOld()
+    static2b = staticMeas(inputFile, 'static2a', SI)
 
-    # Constant values
-    cbar = param.c
-    delta = static2b['delta'].to_numpy()
+    # Obtain values from data
+    cbar   = param.c
+    delta  = static2b['delta'].to_numpy()
     delta1 = delta[0]
     delta2 = delta[1]
-
-    # Function values
-    CN = 123#lift function ...
-    xcg1 = 123#weight function ...
-    xcg2 = 123#weight function ...
+    CN     = np.average( calcLiftCoeff(inputFile, 'static2b', SI) )
+    xcg1   = 123#weight function ...
+    xcg2   = 123#weight function ...
 
     # Calculation
     Cmdelta = ( CN * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
-
     return Cmdelta
 
 
-def calcElevDeflection(static2a, static2b):
+def calcElevDeflection(inputFile, SI=True):
     '''
     DESCRIPTION:    This function calculates the reduced elevator deflection for each meassurement taken during the second stationary meassurement series.
     ========
@@ -47,28 +49,29 @@ def calcElevDeflection(static2a, static2b):
     
     '''
 
+    # Import data
     param = ParametersOld()
+    static2a = staticMeas(inputFile, 'static2a', SI)
+    staticThrust2aRed = staticThrust(inputFile, 'static2a', standard=True)
+    staticThrust2a = staticThrust(inputFile, 'static2a', standard=False)
 
-    # Constant values
+    # Obtain values from data
     CmTc = param.CmTc
     delta = static2a['delta'].to_numpy()
     aoa = static2a['aoa'].to_numpy()
-
-    # Function values
-    Tcs = 123#thrust function ...
-    Tc = 123#thrust function ...
-    Cmdelta = calcElevEffectiveness(static2b)
+    Tcs = staticThrust2aRed['Tp'].to_numpy()
+    Tc  = staticThrust2a['Tp'].to_numpy()
+    Cmdelta = calcElevEffectiveness(inputFile, SI)
 
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
-
     linregress = sc.stats.linregress(aoa, delta)
     Cma = linregress.slope * - Cmdelta
 
     return deltaRed, Cma
 
 
-def calcElevContrForce(static2a):
+def calcElevContrForce(inputFile, SI=True):
     '''
     DESCRIPTION:    This function calculates the reduced elevator control force for each meassurement taken during the second stationary measurement series.
     ========
@@ -80,13 +83,13 @@ def calcElevContrForce(static2a):
     ... Fe_Red [Arary]:             Numpy array containing the reduced elevator control force
     '''
 
+    # Import data
     param = ParametersOld()
+    static2a = staticMeas(inputFile, SI)
 
-    # Constant values
+    # Obtain values from data
     Ws = param.Ws
     Fe = static2a['Fe'].to_numpy()
-
-    # Function values
     W = 123#weight function ...
 
     # Calculation
@@ -133,16 +136,10 @@ def plotElevContrForceCurve():
 
 
 ''' Delete this part once understood: to see how functions work '''
-# from import_static import staticMeas
+Cmdelta       = calcElevEffectiveness('reference', SI=True)
+deltaRed, Cma = calcElevDeflection('reference', SI=True) 
+FeRed         = calcElevContrForce('reference', SI=True)
 
-# param = ParametersOld()
-# static2a = staticMeas('static2a', 'reference')
-# static2b = staticMeas('static2b', 'reference')
-
-# Cmdelta       = calcElevEffectiveness(static2b)
-# deltaRed, Cma = calcElevDeflection(static2a, static2b) 
-# FeRed         = calcElevContrForce(static2a)
-
-# print('\nCmdelta =',Cmdelta, '\n')
-# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-# print('reduced elevator control force:', FeRed, '\n')
+print('\nCmdelta =',Cmdelta, '\n')
+print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
+print('reduced elevator control force:', FeRed, '\n')

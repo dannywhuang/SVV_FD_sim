@@ -273,11 +273,13 @@ def staticThrust(inputFile, dataSet, standard=False):
     if standard == True:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t')
         df.columns = ['Tpl','Tpr']
-        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        # df['Tcs']  = df['Tp']
     elif standard == False:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t')
         df.columns = ['Tpl','Tpr']
-        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        # df['Tc']   = df['Tp']
     return df
 
 

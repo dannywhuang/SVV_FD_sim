@@ -1,9 +1,10 @@
 import numpy as np
+
 from main import ParametersOld
 from import_static import staticFlightCondition
 
 
-def calcLiftCoeff(inputFile, dataSet, Si=True):
+def calcLiftCoeff(inputFile, dataSet, SI=True):
     '''
     DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
     ========
@@ -16,7 +17,7 @@ def calcLiftCoeff(inputFile, dataSet, Si=True):
     ... CL [Array]:                     Numpy array containing lift coefficients (CL \approx CN)
     '''
 
-    staticFlightCond = staticFlightCondition(inputFile, dataSet, Si)
+    staticFlightCond = staticFlightCondition(inputFile, dataSet, SI)
     param = ParametersOld()
 
     S   = param.S
