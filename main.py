@@ -107,7 +107,7 @@ def stateSpace(param):
     C1a = np.matrix([[ (param.CYbdot-2*param.mub)*(param.b/param.V0) , 0 , 0 , 0 ],
                      [ 0 , -(1/2)*(param.b/param.V0) , 0 , 0 ],
                      [ 0 , 0 , -4*param.mub*param.KX2*(param.b/param.V0) , 4*param.mub*param.KXZ*(param.b/param.V0) ],
-                     [ param.Cnbdot , 0 , 4*param.mub*param.KXZ*(param.b/param.V0) , -4*param.mub*param.KZ2*(param.b/param.V0) ]])
+                     [ param.Cnbdot*(param.b/param.V0) , 0 , 4*param.mub*param.KXZ*(param.b/param.V0) , -4*param.mub*param.KZ2*(param.b/param.V0) ]])
 
     C2a = np.matrix([[ param.CYb, param.CL , param.CYp , (param.CYr-4*param.mub) ],
                      [ 0    , 0 , 1 , 0 ],
@@ -273,7 +273,9 @@ class ParametersOld:
     #initial unimproved parameters from appendix C
     def __init__(self, fileName = 'reference', t0=3000):
 
+
         df = sliceTime(fileName,t0,1) # duration is set to 1 second but first element is always taken anyway
+
 
         # Stationary flight condition
         self.hp0 = df['Dadc1_alt'].to_numpy()[0] # pressure altitude in the stationary flight condition [m]
@@ -281,7 +283,8 @@ class ParametersOld:
         self.alpha0 = df['vane_AOA'].to_numpy()[0] # angle of attack in the stationary flight condition [rad]
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
-        self.m = 123  # use calculate weight function
+
+        self.m = 6800  # use calculate weight function
 
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
@@ -384,6 +387,42 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
+def eigval(param):
+
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+    eigv = np.linalg.eig(Aa)[0]
+    return eigv
+
+
+def chareq_as(param):
+    p = param
+
+    # dutch roll
+    A = 8*p.mub**2*p.KZ2
+    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
+    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
+    ev_dr = np.roots([A, B, C])
+
+    # dutch roll further simplification
+    As = -2*p.mub*p.KZ2
+    Bs = 0.5*p.Cnr
+    Cs = -p.Cnb
+    ev_drs = np.roots([As, Bs, Cs])
+
+    #  heavily damped aperiodic roll
+    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+
+    # spiral
+    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
+
+    # dutch roll and aperiodic roll
+
+    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
+    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
+    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
+    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
+    ev3 = np.roots([A3, B3, C3, D3])
+
 
         
 def main():
@@ -396,17 +435,30 @@ def main():
     # create parameters for different motions from data
     paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
 
-    # create state space matrices for phugoid
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(paramPhugoid)
-    print("State matrices are:")
-    print("As: ", As)
-    print("Bs: ", Bs)
-    print("Cs: ", Cs)
-    print("Ds: ", Ds)
-    print("Aa: ", Aa)
-    print("Ba: ", Ba)
-    print("Ca: ", Ca)
-    print("Da: ", Da)
+    param = ParametersOld(fileName='reference',t0=tPhugoid)
+
+    a_eig=eigval(param)
+    print("eigenvalues ss: ", a_eig)
+
+    ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
+    print("eigenvalues dutch roll:",ev_dr)
+    print("eigenvalues dutch role simplified:",ev_drs)
+    print("eigenvalue  damped aperiodic roll:",evdamped_ap)
+    print("eigenvalue  spiral:", ev_spiral)
+    print("eigenvalues dutch roll and aperiodic", ev3 )
+
+
+
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+    # print("State matrices are:")
+    # print("As: ", As)
+    # print("Bs: ", Bs)
+    # print("Cs: ", Cs)
+    # print("Ds: ", Ds)
+    # print("Aa: ", Aa)
+    # print("Ba: ", Ba)
+    # print("Ca: ", Ca)
+    # print("Da: ", Da)
 
     # simulate response using relevant parameters
     XoutS, YoutS, XoutA, YoutA, tS, tA = calcResponse(tPhugoid,20,'reference',paramPhugoid)
