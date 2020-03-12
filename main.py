@@ -440,12 +440,12 @@ def main():
     a_eig=eigval(param)
     print("eigenvalues ss: ", a_eig)
 
-    ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
-    print("eigenvalues dutch roll:",ev_dr)
-    print("eigenvalues dutch role simplified:",ev_drs)
-    print("eigenvalue  damped aperiodic roll:",evdamped_ap)
-    print("eigenvalue  spiral:", ev_spiral)
-    print("eigenvalues dutch roll and aperiodic", ev3 )
+    # ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
+    # print("eigenvalues dutch roll:",ev_dr)
+    # print("eigenvalues dutch role simplified:",ev_drs)
+    # print("eigenvalue  damped aperiodic roll:",evdamped_ap)
+    # print("eigenvalue  spiral:", ev_spiral)
+    # print("eigenvalues dutch roll and aperiodic", ev3 )
 
 
 
