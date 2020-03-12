@@ -34,7 +34,7 @@ def calcElevEffectiveness(inputFile):
     xcg2   = 122#weight function ...
 
     # Calculation
-    Cmdelta = ( CnAvg * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
+    Cmdelta = -1 * ( CnAvg * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
     return Cmdelta
 
 
