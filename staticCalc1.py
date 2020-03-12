@@ -1,5 +1,5 @@
 import numpy as np
-import scipy as sc
+from scipy import stats 
 import pandas as pd
 
 from main import ParametersOld
@@ -37,9 +37,8 @@ def calcAeroCoeff(inputFile, dataSet):
     # Calculations
     Cl = W / (0.5 * rho * Vt**2 * S)
     Cd = Tp / (0.5 * rho * Vt**2 * S)
-
-    Cl_aoa = sc.stats.linregress(aoa,Cl)
-    Cd_Cl2 = sc.stats.linregress(Cl**2,Cd)
+    Cl_aoa = stats.linregress(aoa,Cl)
+    Cd_Cl2 = stats.linregress(Cl**2,Cd)
 
     Cla = Cl_aoa.slope
     aoa0 = -Cl_aoa.intercept / Cla
@@ -55,9 +54,6 @@ def calcAeroCoeff(inputFile, dataSet):
     return aeroCoeff
 
 
-aeroCoeff = calcAeroCoeff('reference','static2a')
-
-print()
 
 
 
