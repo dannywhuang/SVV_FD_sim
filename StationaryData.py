@@ -6,40 +6,35 @@ kts = 0.5144    # [m/s]
 deg = np.pi/180 # [rad]
 lbs = 0.4536    # [kg]
 
-def readStationary():
+def readFirstStationary(file_name='Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',nr_meas=6,row_start=28):
     #----------------------------------------------------------------------------------------------
     #
-    # Reading the data of the stationary measurement series, which are saved in a excel file
+    # Reading the data of the first stationary measurement series, which are saved in a excel file
     #
-    # Input:    none
-    # Output:   meas1 [array]       Data of CL-CD Series 1: [hp,Vi,alpha,FFl,FFr,Fused,Temp]
-    #           measele [array]     Data of Elevator Trim Curve: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
-    #           measshift [array]   Data of shift in cg: [Position,Fused]
+    # Input:    file_name           Name of the excel file
+    #           nr_meas = 6         Number of measurements
+    #           row_start = 28      Row containing the first measurement
+    # Output:   data [array]        Data of the first stationary measurement series: [hp,Vi,alpha,FFl,FFr,Fused,Temp]
     #
     #----------------------------------------------------------------------------------------------
 
-
-    # ----- Stationary measurments CL-CD Series 1 -----
-
-    # Number of measurements
-    nr_meas1 = 6
     # Determine the rows that needs to be skipped
-    rows_meas1 = list(np.arange(1,24)) + list(np.arange(27+nr_meas1,84))
+    rows = list(np.arange(1, row_start-4)) + list(np.arange(row_start-1+nr_meas, 84))
 
     # Reading the right rows in the excel file
-    read_meas1 = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',header=1,skiprows=rows_meas1)
+    read_data = pandas.read_excel(file_name,header=1,skiprows=rows)
 
     # Transform the columns into lists
-    hp    = read_meas1['hp'].tolist()
-    Vi    = read_meas1['IAS'].tolist()
-    alpha = read_meas1['a'].tolist()
-    FFl   = read_meas1['FFl'].tolist()
-    FFr   = read_meas1['FFr'].tolist()
-    Fused = read_meas1['F. used'].tolist()
-    Temp  = read_meas1['TAT'].tolist()
+    hp    = read_data['hp'].tolist()
+    Vi    = read_data['IAS'].tolist()
+    alpha = read_data['a'].tolist()
+    FFl   = read_data['FFl'].tolist()
+    FFr   = read_data['FFr'].tolist()
+    Fused = read_data['F. used'].tolist()
+    Temp  = read_data['TAT'].tolist()
 
     # Create the output list
-    meas1 = [['hp','Vi','alpha','FFl','FFr','Fused','Temp']]
+    data = [['hp','Vi','alpha','FFl','FFr','Fused','Temp']]
 
     # Create the rows containing the measurements
     for i in range(2,len(hp)):
@@ -54,36 +49,46 @@ def readStationary():
         Tempi  = float(Temp[i])         # [deg C]
 
         # Append the row
-        meas1.append([hpi,Vii,alphai,FFli,FFri,Fusedi,Tempi])
+        data.append([hpi,Vii,alphai,FFli,FFri,Fusedi,Tempi])
 
     # Transform into a numpy array
-    meas1 = np.array(meas1)
+    data = np.array(data)
+
+    return data
 
 
-    # ----- Stationary measurements Elevator Trim Curve -----
+def readSecondStationary(file_name='Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',nr_meas=7,row_start=59):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Reading the data of the stationary measurement series, which are saved in a excel file
+    #
+    # Input:    file_name           Name of the excel file
+    #           nr_meas = 7         Number of measurements
+    #           row_start = 59      Row containing the first measurement
+    # Output:   data [array]        Data of the second stationary measurement series: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
+    #
+    #----------------------------------------------------------------------------------------------
 
-    # Number of measurements
-    nr_measele = 7
     # Determine the rows that needs to be skipped
-    rows_measele = list(np.arange(1,55)) + list(np.arange(58+nr_measele,84))
+    rows = list(np.arange(1, row_start-4)) + list(np.arange(row_start-1+nr_meas,84))
 
     # Reading the right rows in the excel file
-    read_measele = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',header=1,skiprows=rows_measele)
+    read_data = pandas.read_excel(file_name,header=1,skiprows=rows)
 
     # Transform the columns into lists
-    hp    = read_measele['hp'].tolist()
-    Vi    = read_measele['IAS'].tolist()
-    alpha = read_measele['a'].tolist()
-    de    = read_measele['de'].tolist()
-    detr  = read_measele['detr'].tolist()
-    Fe    = read_measele['Fe'].tolist()
-    FFl   = read_measele['FFl'].tolist()
-    FFr   = read_measele['FFr'].tolist()
-    Fused = read_measele['F. used'].tolist()
-    Temp  = read_measele['TAT'].tolist()
+    hp    = read_data['hp'].tolist()
+    Vi    = read_data['IAS'].tolist()
+    alpha = read_data['a'].tolist()
+    de    = read_data['de'].tolist()
+    detr  = read_data['detr'].tolist()
+    Fe    = read_data['Fe'].tolist()
+    FFl   = read_data['FFl'].tolist()
+    FFr   = read_data['FFr'].tolist()
+    Fused = read_data['F. used'].tolist()
+    Temp  = read_data['TAT'].tolist()
 
     # Create the output list
-    measele = [['hp','Vi','alpha','de','detr','Fe','FFl','FFr','Fused','Temp']]
+    data = [['hp','Vi','alpha','de','detr','Fe','FFl','FFr','Fused','Temp']]
 
     # Create the rows containing the measurements
     for i in range(2,len(hp)):
@@ -101,34 +106,51 @@ def readStationary():
         Tempi  = float(Temp[i])         # [deg C]
 
         # Append the row
-        measele.append([hpi,Vii,alphai,dei,detri,Fei,FFli,FFri,Fusedi,Tempi])
+        data.append([hpi,Vii,alphai,dei,detri,Fei,FFli,FFri,Fusedi,Tempi])
 
     # Transform into a numpy array
-    measele = np.array(measele)
+    data = np.array(data)
+
+    return data
 
 
-    # ----- Shift in center of gravity -----
+def readcg(file_name='Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',nr_pax=9,row_start_mass=8,row_block=18,row_shift=71,row_start_meas=75):
+    #----------------------------------------------------------------------------------------------
+    #
+    # Reading the data of the masses and the shift in cg, which are saved in a excel file
+    #
+    # Input:    file_name                  Name of the excel file
+    #           nr_pax = 9                 Number of people aboard
+    #           row_start_mass = 8         Row containing the first mass
+    #           row_block = 18             Row containing the block fuel mass
+    #           row_shift = 71             Row containing the shift
+    #           row_start_meas = 75        Row containing the first measurement
+    # Output:   data [array]               Data of the second stationary measurement series: [hp,Vi,alpha,de,detr,Fe,FFl,FFr,Fused,Temp]
+    #
+    #----------------------------------------------------------------------------------------------
 
     # Determine the rows that needs to be skipped
-    row_measposition = list(np.arange(1,70)) + list(np.arange(71,84))
+    rows_mass = list(np.arange(1, row_start_mass-2)) + list(np.arange(row_start_mass-1+nr_pax, 84))
+    row_block = list(np.arange(1, row_block-1)) + list(np.arange(row_block, 84))
+    row_shift = list(np.arange(1, row_shift-1)) + list(np.arange(row_shift, 84))
+    rows_meas = list(np.arange(1,row_start_meas-3)) + list(np.arange(row_start_meas+1,84))
 
     # Reading the right rows in the excel file
-    measposition = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx',skiprows=row_measposition)
+    read_mass = pandas.read_excel(file_name, header=1, skiprows=rows_mass)
+    read_block = pandas.read_excel(file_name, skiprows=row_block)
+    read_shift = pandas.read_excel(file_name, skiprows=row_shift)
+    read_meas = pandas.read_excel(file_name, header=1, skiprows=rows_meas)
 
-    # Add the first and second position to a list
-    position = [float(measposition['Unnamed: 2']),float(measposition['Unnamed: 7'])]
+    # Transform the columns into lists & get data
+    seats = read_mass['Unnamed: 0'].tolist()
+    masses = read_mass['mass [kg]'].tolist()
+    blockfuel = float(read_block['Unnamed: 3'])*lbs # [kg]
+    shift = [float(read_shift['Unnamed: 2']), float(read_shift['Unnamed: 7'])]
+    Fused = read_meas['F. used'].tolist()
 
-    # Determine the rows that needs to be skipped
-    rows_measshift = list(np.arange(1,72)) + list(np.arange(76,84))
-
-    # Reading the right rows in the excel file
-    read_measshift = pandas.read_excel('Post_Flight_Datasheet_Flight_1_DD_12_3_2018.xlsx', header=1, skiprows=rows_measshift)
-
-    # Transform the columns into lists
-    Fused = read_measshift['F. used'].tolist()
-
-    # Create the output list
-    measshift = [['Position','Fused']]
+    # Create the output lists
+    mass = [['Seat','Mass']]
+    data = [['Position','Fused']]
 
     # Create the rows containing the measurements
     for i in range(1,len(Fused)):
@@ -137,9 +159,13 @@ def readStationary():
         Fusedi = Fused[i]*lbs # [kg]
 
         # Append the row
-        measshift.append([position[i-1],Fusedi])
+        data.append([shift[i-1],Fusedi])
+
+    for i in range(len(seats)):
+        mass.append([seats[i].replace(':',''),masses[i]])
 
     # Transform into a numpy array
-    measshift = np.array(measshift)
+    mass = np.array(mass)
+    data = np.array(data)
 
-    return meas1,measele,measshift
+    return mass,blockfuel,data
