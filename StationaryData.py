@@ -144,4 +144,3 @@ def readStationary(inputFile):
 
     return meas1,measele,measshift
 
-a = readStationary('reference')
