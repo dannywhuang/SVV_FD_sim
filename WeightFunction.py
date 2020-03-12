@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Mar  5 13:51:59 2020
-
 @author: afras
 """
 
@@ -146,3 +142,4 @@ def CalcWeightCG(filenameFM,MeasData,Mbem,MomBem,weightOld,LocSwitch):
 
 #MassBal = CalcWeightCG('file:///C:/Users/afras/OneDrive/Documents/SVV_FD_sim/FuelMoments.xlsx',static2b,MBem,MomBem,weightOld,LocSwitch)
 #print(MassBal)
+
