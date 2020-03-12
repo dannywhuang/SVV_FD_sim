@@ -2,7 +2,7 @@
 import numpy as np
 from math import cos, pi, sin, tan, pow
 from import_dynamic import sliceTime
-import control.matlab as ml
+#import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
