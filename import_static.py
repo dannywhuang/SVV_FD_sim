@@ -107,7 +107,7 @@ def convertStaticToSI(inputFile):
     df1.to_csv('staticData/CSV_'+inputFile+'/static1_SI.csv',index=False)
     df2a.to_csv('staticData/CSV_'+inputFile+'/static2a_SI.csv',index=False)
     df2b.to_csv('staticData/CSV_'+inputFile+'/static2b_SI.csv',index=False)
-    return
+    return 
 
 
 # To create files
@@ -289,10 +289,10 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Create data files from the provided/measured data '''
-# excelToCSV('reference')
-# convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True, standard=False)
-# thrustToDAT('reference', SI=True, standard=True)
+excelToCSV('reference')
+convertStaticToSI('reference')
+thrustToDAT('reference', SI=True, standard=False)
+thrustToDAT('reference', SI=True, standard=True)
 
 
 
@@ -301,22 +301,25 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Delete this part once understood: to see how the functions work '''
-# static1  = staticMeas('static1', 'reference', SI=False)
-# static2a = staticMeas('static2a', 'reference', SI=False)
-# static2b = staticMeas('static2b', 'reference', SI=False)
 
-# static1_SI  = staticMeas('static1', 'reference')
-# static2a_SI = staticMeas('static2a', 'reference')
-# static2b_SI = staticMeas('static2b', 'reference')
+# static1  = staticMeas('reference', 'static1', SI=False)
+# static2a = staticMeas('reference', 'static2a', SI=False)
+# static2b = staticMeas('reference', 'static2b', SI=False)
 
-# staticCond1  = staticFlightCondition('static1', 'reference')
-# staticCond2a = staticFlightCondition('static2a', 'reference')
-# staticCond2b = staticFlightCondition('static2b', 'reference')
+
+# static1_SI  = staticMeas('reference', 'static1')
+# static2a_SI = staticMeas('reference', 'static2a')
+# static2b_SI = staticMeas('reference', 'static2b')
+
+
+# staticCond1  = staticFlightCondition('reference', 'static1')
+# staticCond2a = staticFlightCondition('reference', 'static2a')
+# staticCond2b = staticFlightCondition('reference', 'static2b')
+
 
 # staticThrust1  = staticThrust('reference','static1',standard=False)
 # staticThrust2a = staticThrust('reference','static2a',standard=False)
 # staticThrust2b = staticThrust('reference','static2b',standard=False)
-
 
 # print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
 # print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
