@@ -238,6 +238,24 @@ def plotMotionsTest(fileName,t0,duration,motionName):
             plt.show()
     return
 
+class weightOld:
+
+    def __init__(self):
+
+        self.mpilot1 = 95                 # [kg]
+        self.mpilot2 = 92                 # [kg]
+        self.mcoordinator = 74            # [kg]
+        self.mobserver1L = 66             # [kg]
+        self.mobserver1R = 61             # [kg]
+        self.mobserver2L = 75             # [kg]
+        self.mobserver2R = 78             # [kg]
+        self.mobserver3L = 86             # [kg]
+        self.mobserver3R = 68             # [kg]
+
+        self.mblockfuel = 4050*0.45359237 # [kg]
+
+        self.position1 = 288
+        self.position2 = 134
 
 class ParametersOld:
     '''
