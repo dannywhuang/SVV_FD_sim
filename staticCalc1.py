@@ -21,7 +21,7 @@ def calcAeroCoeff(inputFile, dataSet):
 
     # Import data
     param            = ParametersOld()
-    static1          = staticMeas(inputFile, 'static1')
+    static1          = staticMeas(inputFile, dataSet)
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
     staticTp         = staticThrust(inputFile, dataSet)
 
@@ -55,7 +55,9 @@ def calcAeroCoeff(inputFile, dataSet):
     return aeroCoeff
 
 
+aeroCoeff = calcAeroCoeff('reference','static2a')
 
+print()
 
 
 
