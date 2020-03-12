@@ -107,7 +107,7 @@ def convertStaticToSI(inputFile):
     df1.to_csv('staticData/CSV_'+inputFile+'/static1_SI.csv',index=False)
     df2a.to_csv('staticData/CSV_'+inputFile+'/static2a_SI.csv',index=False)
     df2b.to_csv('staticData/CSV_'+inputFile+'/static2b_SI.csv',index=False)
-    return
+    return 
 
 
 # To create files
@@ -289,10 +289,10 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Create data files from the provided/measured data '''
-# excelToCSV('reference')
-# convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True, standard=False)
-# thrustToDAT('reference', SI=True, standard=True)
+excelToCSV('reference')
+convertStaticToSI('reference')
+thrustToDAT('reference', SI=True, standard=False)
+thrustToDAT('reference', SI=True, standard=True)
 
 
 
@@ -301,17 +301,21 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Delete this part once understood: to see how the functions work '''
+
 # static1  = staticMeas('reference', 'static1', SI=False)
 # static2a = staticMeas('reference', 'static2a', SI=False)
 # static2b = staticMeas('reference', 'static2b', SI=False)
+
 
 # static1_SI  = staticMeas('reference', 'static1')
 # static2a_SI = staticMeas('reference', 'static2a')
 # static2b_SI = staticMeas('reference', 'static2b')
 
+
 # staticCond1  = staticFlightCondition('reference', 'static1')
 # staticCond2a = staticFlightCondition('reference', 'static2a')
 # staticCond2b = staticFlightCondition('reference', 'static2b')
+
 
 # staticThrust1  = staticThrust('reference','static1',standard=False)
 # staticThrust2a = staticThrust('reference','static2a',standard=False)
