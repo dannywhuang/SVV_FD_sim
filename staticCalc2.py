@@ -87,6 +87,7 @@ def calcElevContrForce(inputFile):
     # Import data
     param = ParametersOld()
     static2a = staticMeas(inputFile, 'static2a',SI=True)
+    
 
     # Obtain values from data
     Ws = param.Ws
