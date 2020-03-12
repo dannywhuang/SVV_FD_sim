@@ -2,7 +2,7 @@
 import numpy as np
 from math import cos, pi, sin, tan, pow
 from import_dynamic import sliceTime
-#import control.matlab as ml
+import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
@@ -312,6 +312,7 @@ class ParametersOld:
         self.Vh_V = 1  # [ ]self.
         self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
         self.xcg = 0.25 * self.c
+        self.d = 0.69 # fan diameter engine [m]
 
         # Constant values concerning atmosphere and gravity
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
