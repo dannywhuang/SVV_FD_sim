@@ -14,11 +14,11 @@ Required libraries are:
 - calcThrust() **Done**
 - calcLiftCoeff() **Put in calcAeroCoeff()**
 - calcDragCoeff() **Put in clacAeroCoeff()**
-- calcAeroCoeff() **Weight, e, Cma, Cd0 and aoa0 to be added**
+- **new** calcAeroCoeff() **Weight, e, Cma, Cd0 and aoa0 to be added**
 - calcElevEffectiveness() **Done Weight to be added**
 - calcElevDeflection() **Done Weight to be added**
 - calcV() **Changed to staticFlightCondition() with additional functionality**
-- staticFlightCondition() **Done Weight to be added**
+- **new** staticFlightCondition() **Done Weight to be added**
 - calcElevContrForce() **Done Weight to be added**
 - calcEigenTest()
 - calcEigenState()
