@@ -1,8 +1,9 @@
 import numpy as np
+import scipy as sc
 import pandas as pd
 
 from main import ParametersOld
-from import_static import staticFlightCondition, staticThrust
+from import_static import staticMeas, staticFlightCondition, staticThrust
 
 
 def calcAeroCoeff(inputFile, dataSet):
@@ -20,11 +21,14 @@ def calcAeroCoeff(inputFile, dataSet):
 
     # Import data
     param            = ParametersOld()
+    static1          = staticMeas(inputFile, 'static1')
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
     staticTp         = staticThrust(inputFile, dataSet)
 
     # Obtain vales from data
     S   = param.S
+    A   = param.A
+    aoa = static1['aoa'].to_numpy()
     rho = staticFlightCond['rho'].to_numpy()
     Vt  = staticFlightCond['Vt'].to_numpy()
     W   = 123#function for the weight
@@ -33,13 +37,17 @@ def calcAeroCoeff(inputFile, dataSet):
     # Calculations
     Cl = W / (0.5 * rho * Vt**2 * S)
     Cd = Tp / (0.5 * rho * Vt**2 * S)
-    # e = 
-    # Cla = 
-    # Cd0 = 
-    # aoa0 = 
+
+    Cl_aoa = sc.stats.linregress(aoa,Cl)
+    Cd_Cl2 = sc.stats.linregress(Cl**2,Cd)
+
+    Cla = Cl_aoa.slope
+    aoa0 = -Cl_aoa.intercept / Cla
+    e = 1/(np.pi*A*Cd_Cl2.slope)
+    Cd0 = Cd_Cl2.intercept
 
     aeroCoeff = {}
-    dataNames = ['Cl','Cd']#,'e','Cla','Cd0','aoa0']
+    dataNames = ['Cl','Cd','e','Cla','Cd0','aoa0']
     for name in dataNames:
         aeroCoeff[name] = locals()[name]
     aeroCoeff = pd.DataFrame(data=aeroCoeff)
