@@ -39,7 +39,7 @@ def calcAeroCoeff(inputFile, dataSet):
     # Calculations
     Cl = W / (0.5 * rho * Vt**2 * S)
     Cd = Tp / (0.5 * rho * Vt**2 * S)
-
+    
     Cl_aoa = stats.linregress(aoa,Cl)
     Cd_Cl2 = stats.linregress(Cl**2,Cd)
 
@@ -63,6 +63,7 @@ def plotPolar(inputFile):
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
+
     OUTPUT:\n
     '''
 
@@ -72,7 +73,7 @@ def plotPolar(inputFile):
     aoa = static1['aoa'].to_numpy()
     Cl = aeroCoeff['Cl'].to_numpy()
     Cd = aeroCoeff['Cd'].to_numpy()
-
+    
     return
 
 

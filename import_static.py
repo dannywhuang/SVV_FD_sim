@@ -270,29 +270,33 @@ def staticThrust(inputFile, dataSet, standard=False):
     ... df [Dataframe]:                 Pandas dataframe containing Thrust of the left and right engine & the total Thrust.
     '''
 
+    # Import data
+    param = ParametersOld()
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
+
+    # Obtain values from data
     rho = staticFlightCond['rho'].to_numpy()
-    Vt = staticFlightCond['Vt'].to_numpy()
-    D  = 5 #check this !!!!!!!!!!!!!!!!!!!!
+    Vt  = staticFlightCond['Vt'].to_numpy()
+    d   = param.d 
 
     if standard == True:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
         df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
-        df['Tcs']  = df['Tp'].to_numpy() / (rho * Vt**2 * D**2)
+        df['Tcs']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     elif standard == False:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
         df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
-        df['Tc']  = df['Tp'].to_numpy() / (rho * Vt**2 * D**2)
+        df['Tc']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     return df
 
 
 ''' Create data files from the provided/measured data '''
-excelToCSV('reference')
-convertStaticToSI('reference')
-thrustToDAT('reference', SI=True, standard=False)
-thrustToDAT('reference', SI=True, standard=True)
+# excelToCSV('reference')
+# convertStaticToSI('reference')
+# thrustToDAT('reference', SI=True, standard=False)
+# thrustToDAT('reference', SI=True, standard=True)
 
 
 
