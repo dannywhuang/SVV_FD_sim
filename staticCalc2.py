@@ -1,97 +1,101 @@
 import scipy as sc
+import numpy as np
 
 from main import ParametersOld
+from import_static import staticMeas, staticThrust
+from staticCalc1 import calcAeroCoeff
 
 
-def calcElevEffectiveness(static2b):
+def calcElevEffectiveness(inputFile):
     '''
     DESCRIPTION:    This function calculates the elevator effectiveness (Cmdelta), which is a constant value found from the measurements when changing xcg.
     ========
     INPUT:\n
-    ... static2b [Dataframe]:       Panda dataframe containing the meassurements taken (serie 2b)\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+    ... SI [Condition]:                 By default set to SI=True\n
 
     OUTPUT:\n
-    ... Cmdelta [float]:            Elevator effectiveness
+    ... Cmdelta [float]:                Elevator effectiveness
     '''
 
-    param = ParametersOld()
+    # Import data
+    param     = ParametersOld()
+    static2b  = staticMeas(inputFile, 'static2b', SI=True)
+    aeroCoeff = calcAeroCoeff(inputFile, 'static2b')
 
-    # Constant values
-    cbar = param.c
-    delta = static2b['delta'].to_numpy()
+    # Obtain values from data
+    cbar   = param.c
+    delta  = static2b['delta'].to_numpy()
     delta1 = delta[0]
     delta2 = delta[1]
-
-    # Function values
-    CN = 123#lift function ...
-    xcg1 = 123#weight function ...
-    xcg2 = 123#weight function ...
+    Cn     = aeroCoeff['Cl'].to_numpy()
+    CnAvg  = np.average( Cn )
+    xcg1   = 123#weight function ...
+    xcg2   = 122#weight function ...
 
     # Calculation
-    Cmdelta = ( CN * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
-
+    Cmdelta = -1 * ( CnAvg * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
     return Cmdelta
 
 
-def calcElevDeflection(static2a, static2b):
+def calcElevDeflection(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator deflection for each meassurement taken during the second stationary meassurement series.
     ========
     INPUT:\n
-    ... static2a [Dataframe]:       Panda dataframe containing the measurements taken (serie 2a)\n
-    ... static2b [Dataframe]:       Panda dataframe containing the meassurements taken (serie 2b)\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+    ... SI [Condition]:                 By default set to SI=True\n
 
     OUTPUT:\n
-    ... deltaRed [Array]:           Numpy array containing the reduced elevator deflection\n
-    ... Cma [float]:                Longitudinal stability parameter
-    
+    ... deltaRed [Array]:               Numpy array containing the reduced elevator deflections
+    ... Cma [float]:                    Longitudinal stability parameter
     '''
 
+    # Import data
     param = ParametersOld()
+    static2a = staticMeas(inputFile, 'static2a', SI=True)
+    staticThrust2aRed = staticThrust(inputFile, 'static2a', standard=True)
+    staticThrust2a = staticThrust(inputFile, 'static2a', standard=False)
 
-    # Constant values
-    CmTc = param.CmTc
+    # Obtain values from data
+    CmTc  = param.CmTc
     delta = static2a['delta'].to_numpy()
-    aoa = static2a['aoa'].to_numpy()
-
-    # Function values
-    Tcs = 123#thrust function ...
-    Tc = 123#thrust function ...
-    Cmdelta = calcElevEffectiveness(static2b)
+    aoa   = static2a['aoa'].to_numpy()
+    Tcs   = staticThrust2aRed['Tcs'].to_numpy()
+    Tc    = staticThrust2a['Tc'].to_numpy()
+    Cmdelta = calcElevEffectiveness(inputFile)
 
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
-
     linregress = sc.stats.linregress(aoa, delta)
     Cma = linregress.slope * - Cmdelta
-
     return deltaRed, Cma
 
 
-def calcElevContrForce(static2a):
+def calcElevContrForce(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator control force for each meassurement taken during the second stationary measurement series.
     ========
     INPUT:\n
-    ... param [class]:              Constant parameters\n
-    ... static2a [Dataframe]:       Panda dataframe containing the meassurements taken (serie 2a)\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+    ... SI [Condition]:                 By default set to SI=True\n
 
     OUTPUT:\n
-    ... Fe_Red [Arary]:             Numpy array containing the reduced elevator control force
+    ... FeRed [Arary]:                  Numpy array containing the reduced elevator control force
     '''
 
+    # Import data
     param = ParametersOld()
+    static2a = staticMeas(inputFile, 'static2a',SI=True)
+    
 
-    # Constant values
+    # Obtain values from data
     Ws = param.Ws
     Fe = static2a['Fe'].to_numpy()
-
-    # Function values
     W = 123#weight function ...
 
     # Calculation
     FeRed = Fe * Ws / W
-
     return FeRed
 
 
@@ -133,16 +137,10 @@ def plotElevContrForceCurve():
 
 
 ''' Delete this part once understood: to see how functions work '''
-# from import_static import staticMeas
+Cmdelta       = calcElevEffectiveness('reference')
+deltaRed, Cma = calcElevDeflection('reference') 
+FeRed         = calcElevContrForce('reference')
 
-# param = ParametersOld()
-# static2a = staticMeas('static2a', 'reference')
-# static2b = staticMeas('static2b', 'reference')
-
-# Cmdelta       = calcElevEffectiveness(static2b)
-# deltaRed, Cma = calcElevDeflection(static2a, static2b) 
-# FeRed         = calcElevContrForce(static2a)
-
-# print('\nCmdelta =',Cmdelta, '\n')
-# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-# print('reduced elevator control force:', FeRed, '\n')
+print('\nCmdelta =',Cmdelta, '\n')
+print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
+print('reduced elevator control force:', FeRed, '\n')

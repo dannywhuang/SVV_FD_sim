@@ -107,7 +107,7 @@ def convertStaticToSI(inputFile):
     df1.to_csv('staticData/CSV_'+inputFile+'/static1_SI.csv',index=False)
     df2a.to_csv('staticData/CSV_'+inputFile+'/static2a_SI.csv',index=False)
     df2b.to_csv('staticData/CSV_'+inputFile+'/static2b_SI.csv',index=False)
-    return
+    return 
 
 
 # To create files
@@ -147,9 +147,9 @@ def thrustToDAT(inputFile, SI=True, standard=False):
                 data2b = staticMeas('reference', 'static2b', SI)[name].to_numpy()
         
         elif name in ['Mach','DeltaTisa']:
-            data1  = staticFlightCondition('reference', 'static1', SI)[name].to_numpy()
-            data2a = staticFlightCondition('reference', 'static2a', SI)[name].to_numpy()
-            data2b = staticFlightCondition('reference', 'static2b', SI)[name].to_numpy()
+            data1  = staticFlightCondition('reference', 'static1')[name].to_numpy()
+            data2a = staticFlightCondition('reference', 'static2a')[name].to_numpy()
+            data2b = staticFlightCondition('reference', 'static2b')[name].to_numpy()
         thrustData1[name]  = data1
         thrustData2a[name] = data2a
         thrustData2b[name] = data2b
@@ -200,7 +200,7 @@ def staticMeas(inputFile, dataSet, SI=True):
 
 
 # Return data from files
-def staticFlightCondition(inputFile, dataSet, SI=True):
+def staticFlightCondition(inputFile, dataSet):
     '''
     DESCRIPTION:    This function calculates flight conditions using the measurement data. 
     ========
@@ -213,7 +213,7 @@ def staticFlightCondition(inputFile, dataSet, SI=True):
     ... staticFlightCond [Dataframe]:   Pandas dataframe containing flight condition values that are not measured.
     '''
 
-    meas = staticMeas(inputFile, dataSet, SI)
+    meas = staticMeas(inputFile, dataSet, SI=True)
     param = ParametersOld()
 
     # Constant values
@@ -270,14 +270,25 @@ def staticThrust(inputFile, dataSet, standard=False):
     ... df [Dataframe]:                 Pandas dataframe containing Thrust of the left and right engine & the total Thrust.
     '''
 
+    # Import data
+    param = ParametersOld()
+    staticFlightCond = staticFlightCondition(inputFile, dataSet)
+
+    # Obtain values from data
+    rho = staticFlightCond['rho'].to_numpy()
+    Vt  = staticFlightCond['Vt'].to_numpy()
+    d   = param.d 
+
     if standard == True:
-        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t')
+        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
-        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tcs']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     elif standard == False:
-        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t')
+        df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
-        df['Tp'] = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
+        df['Tc']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     return df
 
 
@@ -294,22 +305,25 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Delete this part once understood: to see how the functions work '''
-# static1  = staticMeas('static1', 'reference', SI=False)
-# static2a = staticMeas('static2a', 'reference', SI=False)
-# static2b = staticMeas('static2b', 'reference', SI=False)
 
-# static1_SI  = staticMeas('static1', 'reference')
-# static2a_SI = staticMeas('static2a', 'reference')
-# static2b_SI = staticMeas('static2b', 'reference')
+# static1  = staticMeas('reference', 'static1', SI=False)
+# static2a = staticMeas('reference', 'static2a', SI=False)
+# static2b = staticMeas('reference', 'static2b', SI=False)
 
-# staticCond1  = staticFlightCondition('static1', 'reference', SI=True)
-# staticCond2a = staticFlightCondition('static2a', 'reference', SI=True)
-# staticCond2b = staticFlightCondition('static2b', 'reference', SI=True)
+
+# static1_SI  = staticMeas('reference', 'static1')
+# static2a_SI = staticMeas('reference', 'static2a')
+# static2b_SI = staticMeas('reference', 'static2b')
+
+
+# staticCond1  = staticFlightCondition('reference', 'static1')
+# staticCond2a = staticFlightCondition('reference', 'static2a')
+# staticCond2b = staticFlightCondition('reference', 'static2b')
+
 
 # staticThrust1  = staticThrust('reference','static1',standard=False)
 # staticThrust2a = staticThrust('reference','static2a',standard=False)
 # staticThrust2b = staticThrust('reference','static2b',standard=False)
-
 
 # print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
 # print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
