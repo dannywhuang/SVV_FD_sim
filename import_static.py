@@ -284,8 +284,8 @@ def staticThrust(inputFile, dataSet, standard=False):
 ''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
-thrustToDAT('reference', SI=True, standard=False)
-thrustToDAT('reference', SI=True, standard=True)
+# thrustToDAT('reference', SI=True, standard=False)
+# thrustToDAT('reference', SI=True, standard=True)
 
 
 
