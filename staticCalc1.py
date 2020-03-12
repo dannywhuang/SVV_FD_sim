@@ -1,6 +1,8 @@
 import numpy as np
-import scipy as sc
+#import scipy as sp
+from scipy import stats
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from main import ParametersOld
 from import_static import staticMeas, staticFlightCondition, staticThrust
@@ -38,8 +40,8 @@ def calcAeroCoeff(inputFile, dataSet):
     Cl = W / (0.5 * rho * Vt**2 * S)
     Cd = Tp / (0.5 * rho * Vt**2 * S)
 
-    Cl_aoa = sc.stats.linregress(aoa,Cl)
-    Cd_Cl2 = sc.stats.linregress(Cl**2,Cd)
+    Cl_aoa = stats.linregress(aoa,Cl)
+    Cd_Cl2 = stats.linregress(Cl**2,Cd)
 
     Cla = Cl_aoa.slope
     aoa0 = -Cl_aoa.intercept / Cla
@@ -54,11 +56,24 @@ def calcAeroCoeff(inputFile, dataSet):
 
     return aeroCoeff
 
+def plotPolar(inputFile):
+    '''
+    DESCRIPTION:    This function plots the Cl-alpha and Cl-Cd curve
+    ========
+    INPUT:\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
-aeroCoeff = calcAeroCoeff('reference','static2a')
+    OUTPUT:\n
+    '''
 
-print()
+    static1 = staticMeas(inputFile,'static1')
+    aeroCoeff = calcAeroCoeff(inputFile,'static1')
 
+    aoa = static1['aoa'].to_numpy()
+    Cl = aeroCoeff['Cl'].to_numpy()
+    Cd = aeroCoeff['Cd'].to_numpy()
+
+    return
 
 
 ''' Delete this part once understood: to see how the functions work '''
