@@ -135,21 +135,21 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     for name in dataNames:
         if name in ['hp','FFl','FFr']:
             if standard == True and name in ['FFl','FFr']:
-                len1   = np.size(staticMeas('static1', 'reference', SI)[name].to_numpy())
+                len1   = np.size(staticMeas('reference', 'static1', SI)[name].to_numpy())
                 data1  = np.ones(len1)*param.ms
-                len2a  = np.size(staticMeas('static2a', 'reference', SI)[name].to_numpy())
+                len2a  = np.size(staticMeas('reference', 'static2a', SI)[name].to_numpy())
                 data2a = np.ones(len2a)*param.ms
-                len2b  = np.size(staticMeas('static2b', 'reference', SI)[name].to_numpy())
+                len2b  = np.size(staticMeas('reference', 'static2b', SI)[name].to_numpy())
                 data2b = np.ones(len2b)*param.ms
             else:
-                data1  = staticMeas('static1', 'reference', SI)[name].to_numpy()
-                data2a = staticMeas('static2a', 'reference', SI)[name].to_numpy()
-                data2b = staticMeas('static2b', 'reference', SI)[name].to_numpy()
+                data1  = staticMeas('reference', 'static1', SI)[name].to_numpy()
+                data2a = staticMeas('reference', 'static2a', SI)[name].to_numpy()
+                data2b = staticMeas('reference', 'static2b', SI)[name].to_numpy()
         
         elif name in ['Mach','DeltaTisa']:
-            data1  = staticFlightCondition('static1', 'reference', SI)[name].to_numpy()
-            data2a = staticFlightCondition('static2a', 'reference', SI)[name].to_numpy()
-            data2b = staticFlightCondition('static2b', 'reference', SI)[name].to_numpy()
+            data1  = staticFlightCondition('reference', 'static1', SI)[name].to_numpy()
+            data2a = staticFlightCondition('reference', 'static2a', SI)[name].to_numpy()
+            data2b = staticFlightCondition('reference', 'static2b', SI)[name].to_numpy()
         thrustData1[name]  = data1
         thrustData2a[name] = data2a
         thrustData2b[name] = data2b
@@ -284,8 +284,8 @@ def staticThrust(inputFile, dataSet, standard=False):
 ''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True, standard=False)
-# thrustToDAT('reference', SI=True, standard=True)
+thrustToDAT('reference', SI=True, standard=False)
+thrustToDAT('reference', SI=True, standard=True)
 
 
 
