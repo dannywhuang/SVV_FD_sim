@@ -322,14 +322,14 @@ def staticThrust(inputFile, dataSet, standard=False):
 # static2b_SI = staticMeas('reference', 'static2b')
 
 
-staticCond1  = staticFlightCondition('reference', 'static1')
-staticCond2a = staticFlightCondition('reference', 'static2a')
-staticCond2b = staticFlightCondition('reference', 'static2b')
+# staticCond1  = staticFlightCondition('reference', 'static1')
+# staticCond2a = staticFlightCondition('reference', 'static2a')
+# staticCond2b = staticFlightCondition('reference', 'static2b')
 
 
-staticThrust1  = staticThrust('reference','static1',standard=False)
-staticThrust2a = staticThrust('reference','static2a',standard=False)
-staticThrust2b = staticThrust('reference','static2b',standard=False)
+# staticThrust1  = staticThrust('reference','static1',standard=False)
+# staticThrust2a = staticThrust('reference','static2a',standard=False)
+# staticThrust2b = staticThrust('reference','static2b',standard=False)
 
 # print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
 # print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
