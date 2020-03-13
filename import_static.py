@@ -3,8 +3,10 @@ import numpy as np
 import os
 from numpy import sqrt
 
-from main import ParametersStatic
-from import_weight import calcWeightCG
+# from main import ParametersStatic
+# from import_weight import calcWeightCG
+import main 
+import import_weight
 
 
 # To create files
@@ -125,7 +127,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-    param = ParametersStatic()
+    param = main.ParametersStatic()
 
     thrustData1 = {}
     thrustData2a = {}
@@ -217,8 +219,8 @@ def staticFlightCondition(inputFile, dataSet):
 
     # Import data
     meas  = staticMeas(inputFile, dataSet, SI=True)
-    param = ParametersStatic()
-    staticWeight = calcWeightCG(inputFile,dataSet)
+    param = main.ParametersStatic()
+    staticWeight = import_weight.calcWeightCG(inputFile,dataSet)
 
     # Constant values
     pres0 = param.pres0
@@ -271,7 +273,7 @@ def staticThrust(inputFile, dataSet, standard=False):
     '''
 
     # Import data
-    param = ParametersStatic()
+    param = main.ParametersStatic()
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
 
     # Obtain values from data

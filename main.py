@@ -5,7 +5,7 @@ import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
-# import import_static
+import import_static
 import import_dynamic
 import import_weight
 

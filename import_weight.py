@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
 import scipy as sc 
-
-import import_static 
-from import_dynamic import dynamicMeas
-from main import weightOld
+ 
+# from import_dynamic import dynamicMeas
+# from main import weightOld
+import import_dynamic
+import import_static
+import main
 
 
 def findFuelMoments():
@@ -50,13 +52,13 @@ def calcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = weightOld(inputFile)
+    pay = main.weightOld(inputFile)
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
 
     if dataSet == 'dynamic':
-        MeasData = dynamicMeas(inputFile,SI=True)
+        MeasData = import_dynamic.dynamicMeas(inputFile,SI=True)
     elif dataSet in ['static1','static2a','static2b']:
         MeasData = import_static.staticMeas(inputFile, dataSet)
     else:
