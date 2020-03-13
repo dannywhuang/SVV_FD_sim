@@ -451,26 +451,86 @@ class DynamicTime:
 
 
 class weightOld:
+    def __init__(self, inputFile):
+
+        if inputFile == 'reference':
+
+            self.mpilot1 = 95                   # [kg]
+            self.mpilot2 = 92                   # [kg]
+            self.mcoordinator = 74              # [kg]
+            self.mobserver1L = 66               # [kg]
+            self.mobserver1R = 61               # [kg]
+            self.mobserver2L = 75               # [kg]
+            self.mobserver2R = 78               # [kg]
+            self.mobserver3L = 86               # [kg]
+            self.mobserver3R = 68               # [kg]
+
+            self.mblockfuel = 4050*0.45359237   # [kg]
+
+            self.position1 = 288
+            self.position2 = 134
+
+            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.MBem = 9165*0.45359
+            self.MomBem = 2672953.5*0.45359*0.0254
+
+        if inputFile == 'actual':
+            # **** Change these values to the correct ones *****
+            self.mpilot1 = 95                   # [kg]
+            self.mpilot2 = 92                   # [kg]
+            self.mcoordinator = 74              # [kg]
+            self.mobserver1L = 66               # [kg]
+            self.mobserver1R = 61               # [kg]
+            self.mobserver2L = 75               # [kg]
+            self.mobserver2R = 78               # [kg]
+            self.mobserver3L = 86               # [kg]
+            self.mobserver3R = 68               # [kg]
+
+            self.mblockfuel = 4050*0.45359237   # [kg]
+
+            self.position1 = 288
+            self.position2 = 134
+
+            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.MBem = 9165*0.45359
+            self.MomBem = 2672953.5*0.45359*0.0254
+
+
+class ParametersStatic:
     def __init__(self):
 
-        self.mpilot1 = 95                   # [kg]
-        self.mpilot2 = 92                   # [kg]
-        self.mcoordinator = 74              # [kg]
-        self.mobserver1L = 66               # [kg]
-        self.mobserver1R = 61               # [kg]
-        self.mobserver2L = 75               # [kg]
-        self.mobserver2R = 78               # [kg]
-        self.mobserver3L = 86               # [kg]
-        self.mobserver3R = 68               # [kg]
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
 
-        self.mblockfuel = 4050*0.45359237   # [kg]
+        # Aircraft geometry
+        self.S = 30.00  # wing area [m^2]
+        self.Sh = 0.2 * self.S  # stabiliser area [m^2]
+        self.Sh_S = self.Sh / self.S  # [ ]
+        self.lh = 0.71 * 5.968  # tail length [m]
+        self.c = 2.0569  # mean aerodynamic cord [m]
+        self.lh_c = self.lh / self.c  # [ ]
+        self.b = 15.911  # wing span [m]
+        self.bh = 5.791  # stabilser span [m]
+        self.A = self.b ** 2 / self.S  # wing aspect ratio [ ]
+        self.Ah = self.bh ** 2 / self.Sh  # stabilser aspect ratio [ ]
+        self.Vh_V = 1  # [ ]self.
+        self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
+        self.xcg = 0.25 * self.c
+        self.d = 0.69 # fan diameter engine [m]
 
-        self.position1 = 288
-        self.position2 = 134
+        # Constant values concerning atmosphere and gravity
+        self.rho0 = 1.2250  # air density at sea level [kg/m^3]
+        self.lamb = -0.0065  # temperature gradient in ISA [K/m]
+        self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
+        self.R      = 287.05  # specific gas constant [m^2/sec^2K]
+        self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
 
-        self.locSwitch = 7                  #Initial Seat Location of the person who switched
-        self.MBem = 9165*0.45359
-        self.MomBem = 2672953.5*0.45359*0.0254
+        # Stability derivatives
+        self.CmTc = -0.0064
+
 
 
 class ParametersOld:
@@ -480,14 +540,14 @@ class ParametersOld:
         INPUT:\n
         ... Can be left empty when dealing with the static measurement series \n
         ... fileName [String]:          As default set to 'reference'. This is the name of the CSV file containing all dynamic measurements\n
-        ... t0 [Value]:                 As default set to 10. At what time do you want the stationary flight condition variables?\n
+        ... t0 [Value]:                 As default set to 3000. At what time do you want the stationary flight condition variables?\n
 
         OUTPUT:\n
         ... ParametersOld [Class]:      Class containing the parameters\n
         '''
 
     #initial unimproved parameters from appendix C
-    def __init__(self, fileName ,t0,SI=True):
+    def __init__(self, fileName ,t0=3000,SI=True):
         if SI==True:
             df = import_dynamic.sliceTime(fileName,t0,1,SI) # duration is set to 1 second but first element is always taken anyway
         elif SI==False:
@@ -609,6 +669,61 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
+
+def Dutchroll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference',t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    # dutch roll
+    A = 8*p.mub**2*p.KZ2
+    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
+    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
+    ev_dr = np.roots([A, B, C])
+    return ev_dr, eigv[1:3]*p.b/p.V0
+
+
+def Dutchroll_simp(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    As = -2*p.mub*p.KZ2
+    Bs = 0.5*p.Cnr
+    Cs = -p.Cnb
+    ev_drs = np.roots([As, Bs, Cs])
+    return ev_drs, eigv[1:3]*p.b/p.V0
+
+def Aperiodic_roll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues Aperiodic roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+    return evdamped_ap, eigv[0]*p.b/p.V0
+
+
+def Spiral(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues spiral and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
+    return ev_spiral, eigv[3]*p.b/p.V0
+  
         
 def main():
     tRef = DynamicTime(fileName='reference')
@@ -630,22 +745,21 @@ def main():
     eigShortPeriod = calcEigenShortPeriod(paramShortPeriod)
 
     print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs)
-    print("eigenvalues an Phugoid:",eigPhugoid)
-    print("eigenvalues an Phugoid Simplified:", eigPhugoidSimplified)
+    print("eigenvalues analytical Phugoid:",eigPhugoid)
+    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimplified)
 
     print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs)
-    print("eigenvalues an Short Period:", eigShortPeriod)
+    print("eigenvalues analytical Short Period:", eigShortPeriod)
 
-    #a_eig=eigval(param)
-    #print("eigenvalues ss: ", a_eig)
+    ev_dr, ss_d = Dutchroll(tDutchRoll)
+    ev_drs, ss_ds = Dutchroll_simp(tDutchRoll)
+    evdamped_ap, ss_ap = Aperiodic_roll(tAperRoll)
+    ev_spiral, ss_sp = Spiral(tSpiral)
 
-    # ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
-    # print("eigenvalues dutch roll:",ev_dr)
-    # print("eigenvalues dutch role simplified:",ev_drs)
-    # print("eigenvalue  damped aperiodic roll:",evdamped_ap)
-    # print("eigenvalue  spiral:", ev_spiral)
-    # print("eigenvalues dutch roll and aperiodic", ev3 )
-
+    print("eigenvalues dutch roll char eq:",ev_dr,"ss-->",ss_d)
+    print("eigenvalues dutch role simplified char eq:",ev_drs,"ss-->",ss_ds)
+    print("eigenvalue  damped aperiodic roll char eq:",evdamped_ap,"ss-->",ss_ap)
+    print("eigenvalue  spiral char eq:", ev_spiral,"ss-->",ss_sp)
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
@@ -653,7 +767,6 @@ def main():
     plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
     plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
     plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
-
 
 if __name__ == "__main__":
     #this is run when script is started, dont change

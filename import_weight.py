@@ -1,13 +1,15 @@
 import numpy as np
 import pandas as pd
 import scipy as sc 
-
-import import_static
+ 
+# from import_dynamic import dynamicMeas
+# from main import weightOld
 import import_dynamic
+import import_static
 import main
 
 
-def FindFuelMoments():
+def findFuelMoments():
     '''
     DESCRIPTION:    Gives interpolant of the fuel moment as a function of the fuel mass. The excel file containing the fuel data needs to have the name 'FuelMoments'.
     ========
@@ -50,7 +52,7 @@ def calcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = main.weightOld()
+    pay = main.weightOld(inputFile)
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
@@ -97,7 +99,7 @@ def calcWeightCG(inputFile, dataSet):
     
     M = np.ones(len(Mfuel))*Mpay + np.ones(len(Mfuel))*MBem + Mfuel
     
-    MomF = FindFuelMoments()
+    MomF = findFuelMoments()
     
     MomFlst = np.array([])
     for fuel in Mfuel:
@@ -132,10 +134,10 @@ def calcWeightCG(inputFile, dataSet):
 
 
 
-''' Test function '''
-# MassBal1 = CalcWeightCG('reference','static1')
-# MassBal2a = CalcWeightCG('reference','static2a')
-# MassBal2b = CalcWeightCG('reference','static2b')
-# MassBalDyn = CalcWeightCG('reference','dynamic')
+''' Delete this part once understood: to see how functions work '''
+# MassBal1 = calcWeightCG('reference','static1')
+# MassBal2a = calcWeightCG('reference','static2a')
+# MassBal2b = calcWeightCG('reference','static2b')
+# MassBalDyn = calcWeightCG('reference','dynamic')
 
 # print(MassBal2a)

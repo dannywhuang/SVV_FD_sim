@@ -3,7 +3,10 @@ import numpy as np
 import os
 from numpy import sqrt
 
-import main
+# from main import ParametersStatic
+# from import_weight import calcWeightCG
+import main 
+import import_weight
 
 
 # To create files
@@ -81,10 +84,11 @@ def convertStaticToSI(inputFile):
         df2a[knotsName] = df2a[knotsName] * 0.514444444
         df2b[knotsName] = df2b[knotsName] * 0.514444444
 
-    degList = ['delta', 'deltaTr']
-    for degName in degList:             
+    degList = ['delta', 'deltaTr', 'aoa']
+    for degName in degList:            
         df2a[degName] = np.radians(df2a[degName])           # convert degrees or degrees/s to radians or radians/s
         df2b[degName] = np.radians(df2b[degName])
+    df1['aoa'] = np.radians(df1['aoa'])
 
     lbsHrList = ['FFl', 'FFr']
     for lbsHrName in lbsHrList:
@@ -123,7 +127,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-    param = ParametersOld()
+    param = main.ParametersStatic()
 
     thrustData1 = {}
     thrustData2a = {}
@@ -213,8 +217,10 @@ def staticFlightCondition(inputFile, dataSet):
     ... staticFlightCond [Dataframe]:   Pandas dataframe containing flight condition values that are not measured.
     '''
 
-    meas = staticMeas(inputFile, dataSet, SI=True)
-    param = main.ParametersOld()
+    # Import data
+    meas  = staticMeas(inputFile, dataSet, SI=True)
+    param = main.ParametersStatic()
+    staticWeight = import_weight.calcWeightCG(inputFile,dataSet)
 
     # Constant values
     pres0 = param.pres0
@@ -222,18 +228,14 @@ def staticFlightCondition(inputFile, dataSet):
     Temp0 = param.Temp0 
     g0    = param.g 
     Ws    = param.Ws
-
     gamma = param.gamma
     lamb  = param.lamb 
     R     = param.R
 
     Vc       = meas['Vi'].to_numpy()
-
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
-
-    # Function values
-    W = 123#weight function ...
+    W        = staticWeight['Weight'].to_numpy()
 
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
@@ -271,7 +273,7 @@ def staticThrust(inputFile, dataSet, standard=False):
     '''
 
     # Import data
-    param = main.ParametersOld('reference',10,1)
+    param = main.ParametersStatic()
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
 
     # Obtain values from data
@@ -297,6 +299,12 @@ def staticThrust(inputFile, dataSet, standard=False):
 # convertStaticToSI('reference')
 # thrustToDAT('reference', SI=True, standard=False)
 # thrustToDAT('reference', SI=True, standard=True)
+
+# excelToCSV('actual')
+# convertStaticToSI('actual')
+# thrustToDAT('actual', SI=True, standard=False)
+# thrustToDAT('actual', SI=True, standard=True)
+
 
 
 
