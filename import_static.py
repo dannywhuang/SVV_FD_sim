@@ -81,10 +81,11 @@ def convertStaticToSI(inputFile):
         df2a[knotsName] = df2a[knotsName] * 0.514444444
         df2b[knotsName] = df2b[knotsName] * 0.514444444
 
-    degList = ['delta', 'deltaTr']
-    for degName in degList:             
+    degList = ['delta', 'deltaTr', 'aoa']
+    for degName in degList:            
         df2a[degName] = np.radians(df2a[degName])           # convert degrees or degrees/s to radians or radians/s
         df2b[degName] = np.radians(df2b[degName])
+    df1['aoa'] = np.radians(df1['aoa'])
 
     lbsHrList = ['FFl', 'FFr']
     for lbsHrName in lbsHrList:
