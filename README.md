@@ -10,7 +10,7 @@ Required libraries are:
 - control
 
 ## Functions to be finished
-- calcWeightCG()
+- calcWeightCG() **Done**
 - calcThrust() **Done**
 - **not used** calcLiftCoeff() **put in calcAeroCoeff()**
 - **not used** calcDragCoeff() **put in calcAeroCoeff()**
@@ -21,11 +21,11 @@ Required libraries are:
 - **new** staticFlightCondition() **Done Weight to be added**
 - calcElevContrForce() **Done Weight to be added**
 - calcEigenTest()
-- calcEigenState()
-- stateSpace() **Done Weight to be added**
-- calcResponse() **Done Weight to be added**
+- calcEigenState() **put in spaceState**
+- stateSpace() **Done** 
+- calcResponse() **Done**
 - plotPolar()
 - plotElevTrimCurve() 
 - plotElevContrForceCurve()
-- plotResponse()
-- plotMotionsTest() **Done Weight to be added**
+- plotResponse() **put in PlotMotionsTest()**
+- plotMotionsTest() **Done**
