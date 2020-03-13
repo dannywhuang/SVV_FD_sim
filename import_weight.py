@@ -1,36 +1,23 @@
-@author: afras
-"""
-
-from math import *
 import numpy as np
 import pandas as pd
-import scipy.interpolate
-from import_static import static1, static2a, static2b
+import scipy as sc 
+
+from import_static import staticMeas 
 from main import weightOld
 
 
-#These are constants idk where to put them so here they are
-MBem = 9165*0.45359
-MomBem = 2672953.5*0.45359*0.0254
-
-#Initial Seat Location of the person who switched
-LocSwitch = 7
-
-"""
-The dynamic data, uncomment or define somewhere if you wanna test on dynamic
-"""
-DynData = pd.read_csv('dynamicData/reference_SI.csv')
-
-
-def FindFuelMoments(fileName):
+def FindFuelMoments():
     '''
-    DESCRIPTION: gives interpolant of the fuel moment as a function of the fuel mass
-    =========
-    
-    input = name of the FuelMoments excel file 
+    DESCRIPTION:    Gives interpolant of the fuel moment as a function of the fuel mass. The excel file containing the fuel data needs to have the name 'FuelMoments'.
+    ========
+    INPUT:\n
+    ... None'n
+
+    OUTPUT:\n
+    ... MomF [Type]         Interpolant of the fuel moment as a function of fuel mass
     '''
-    
-    dfm = pd.read_excel(fileName,usecols='A')
+
+    dfm = pd.read_excel('FuelData/FuelMoments.xlsx',usecols='A')
 
     masslst = np.arange(100,5000,100)
     masslst = np.append(masslst,5008)
@@ -45,33 +32,36 @@ def FindFuelMoments(fileName):
     #Convert to SI
     momentlst = momentlst*(0.45359*0.0254)*100
     
-    
-    MomF = scipy.interpolate.interp1d(masslst,momentlst)
+    MomF = sc.interpolate.interp1d(masslst,momentlst)
     
     return MomF
-
-
    
 
-def CalcWeightCG(filenameFM,MeasData,Mbem,MomBem,weightOld,LocSwitch):
-    
+def CalcWeightCG(inputFile, dataSet):
     '''
-    DESCRIPTION: gives dataframe for Weight and Xcg
-    =========
-    
-    input = name of the FuelMoments excel file filenameFM 
-    
-    MeasData is either static1, static2a, static2b or DynData
-    
-    LocSwitch is the seat location of the person who moved, which is not available from the excell sheet.
-    
-    It is only used for static2b, so place random number if you use other MeasData 
+    DESCRIPTION:    Gives dataframe for Weight and Xcg
+    ========
+    INPUT:\n
+    ... inputFile [String]:         Choose between 'reference' or 'actual'\n
+    ... dataSet [String]:           Choose between 'static1', 'static2a', 'static2b' or 'dynamic'\n
+
+    OUTPUT:\n
+    ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
-    
     
     pay = weightOld()
-    
     MBlockFuel = pay.mblockfuel
+    MBem = pay.MBem
+    MomBem = pay.MomBem
+
+    if dataSet == 'dynamic':
+        MeasData = pd.read_csv('dynamicData/reference_SI.csv')
+    elif dataSet in ['static1','static2a','static2b']:
+        MeasData = staticMeas(inputFile, dataSet)
+    else:
+        raise ValueError("invalid input for 'dataSet'; choose between 'static1', 'static2a', 'static2b' or 'dynamic'")
+
+    LocSwitch = pay.locSwitch
 
     Xcgpay = np.array([131,131,214,214,251,251,288,288,170])*0.0254
     
@@ -87,17 +77,15 @@ def CalcWeightCG(filenameFM,MeasData,Mbem,MomBem,weightOld,LocSwitch):
     Mpay = np.sum(Mpaylst)
     MomentPay = np.sum(MomentPay)
     
-    
     Mfuel = np.array([])
     
-    
-    if len(MeasData) > 10000:
+    if dataSet == 'dynamic':
         DynFusedlh = np.array(MeasData['lh_engine_FU'])
         DynFusedrh = np.array(MeasData['rh_engine_FU'])    
         
-        Fused =   DynFusedlh+ DynFusedrh
+        Fused =   DynFusedlh + DynFusedrh
     
-    else:
+    elif dataSet in ['static1','static2a','static2b']:
         Fused = np.array(MeasData['F. Used'])
     
     for i in Fused:
@@ -108,14 +96,11 @@ def CalcWeightCG(filenameFM,MeasData,Mbem,MomBem,weightOld,LocSwitch):
     
     M = np.ones(len(Mfuel))*Mpay + np.ones(len(Mfuel))*MBem + Mfuel
     
-    
-    MomF = FindFuelMoments(filenameFM)
+    MomF = FindFuelMoments()
     
     MomFlst = np.array([])
     for fuel in Mfuel:
         MomFlst = np.append(MomFlst,MomF(fuel))
-        
-     
     
     Xcg = (MomentPay*np.ones(len(MomFlst)) + MomBem*np.ones(len(MomFlst)) + MomFlst)/M
     
@@ -138,8 +123,14 @@ def CalcWeightCG(filenameFM,MeasData,Mbem,MomBem,weightOld,LocSwitch):
     
     return MassBal
 
-#Test function
 
-#MassBal = CalcWeightCG('file:///C:/Users/afras/OneDrive/Documents/SVV_FD_sim/FuelMoments.xlsx',static2b,MBem,MomBem,weightOld,LocSwitch)
-#print(MassBal)
 
+
+
+''' Test function '''
+# MassBal1 = CalcWeightCG('reference','static1')
+# MassBal2a = CalcWeightCG('reference','static2a')
+# MassBal2b = CalcWeightCG('reference','static2b')
+# MassBalDyn = CalcWeightCG('reference','dynamic')
+
+# print(MassBal2a)
