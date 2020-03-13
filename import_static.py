@@ -299,6 +299,12 @@ def staticThrust(inputFile, dataSet, standard=False):
 # thrustToDAT('reference', SI=True, standard=False)
 # thrustToDAT('reference', SI=True, standard=True)
 
+# excelToCSV('actual')
+# convertStaticToSI('actual')
+# thrustToDAT('actual', SI=True, standard=False)
+# thrustToDAT('actual', SI=True, standard=True)
+
+
 
 
 
