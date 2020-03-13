@@ -6,7 +6,7 @@ from import_static import staticMeas
 from main import weightOld
 
 
-def FindFuelMoments():
+def findFuelMoments():
     '''
     DESCRIPTION:    Gives interpolant of the fuel moment as a function of the fuel mass. The excel file containing the fuel data needs to have the name 'FuelMoments'.
     ========
@@ -37,7 +37,7 @@ def FindFuelMoments():
     return MomF
    
 
-def CalcWeightCG(inputFile, dataSet):
+def calcWeightCG(inputFile, dataSet):
     '''
     DESCRIPTION:    Gives dataframe for Weight and Xcg
     ========
@@ -96,7 +96,7 @@ def CalcWeightCG(inputFile, dataSet):
     
     M = np.ones(len(Mfuel))*Mpay + np.ones(len(Mfuel))*MBem + Mfuel
     
-    MomF = FindFuelMoments()
+    MomF = findFuelMoments()
     
     MomFlst = np.array([])
     for fuel in Mfuel:
@@ -127,10 +127,10 @@ def CalcWeightCG(inputFile, dataSet):
 
 
 
-''' Test function '''
-# MassBal1 = CalcWeightCG('reference','static1')
-# MassBal2a = CalcWeightCG('reference','static2a')
-# MassBal2b = CalcWeightCG('reference','static2b')
-# MassBalDyn = CalcWeightCG('reference','dynamic')
+''' Delete this part once understood: to see how functions work '''
+# MassBal1 = calcWeightCG('reference','static1')
+# MassBal2a = calcWeightCG('reference','static2a')
+# MassBal2b = calcWeightCG('reference','static2b')
+# MassBalDyn = calcWeightCG('reference','dynamic')
 
 # print(MassBal2a)

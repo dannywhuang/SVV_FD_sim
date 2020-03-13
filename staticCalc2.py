@@ -3,6 +3,7 @@ import numpy as np
 
 from main import ParametersOld
 from import_static import staticMeas, staticThrust
+from import_weight import calcWeightCG
 from staticCalc1 import calcAeroCoeff
 
 
@@ -19,9 +20,10 @@ def calcElevEffectiveness(inputFile):
     '''
 
     # Import data
-    param     = ParametersOld()
-    static2b  = staticMeas(inputFile, 'static2b', SI=True)
-    aeroCoeff = calcAeroCoeff(inputFile, 'static2b')
+    param          = ParametersOld()
+    static2b       = staticMeas(inputFile, 'static2b', SI=True)
+    aeroCoeff      = calcAeroCoeff(inputFile, 'static2b')
+    static2bWeight = calcWeightCG(inputFile, 'static2b')
 
     # Obtain values from data
     cbar   = param.c
@@ -30,8 +32,9 @@ def calcElevEffectiveness(inputFile):
     delta2 = delta[1]
     Cn     = aeroCoeff['Cl'].to_numpy()
     CnAvg  = np.average( Cn )
-    xcg1   = 123#weight function ...
-    xcg2   = 122#weight function ...
+    xcg    = static2bWeight['Xcg'].to_numpy()
+    xcg1   = xcg[0]
+    xcg2   = xcg[1]
 
     # Calculation
     Cmdelta = -1 * ( CnAvg * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
@@ -52,10 +55,10 @@ def calcElevDeflection(inputFile):
     '''
 
     # Import data
-    param = ParametersOld()
-    static2a = staticMeas(inputFile, 'static2a', SI=True)
+    param             = ParametersOld()
+    static2a          = staticMeas(inputFile, 'static2a', SI=True)
     staticThrust2aRed = staticThrust(inputFile, 'static2a', standard=True)
-    staticThrust2a = staticThrust(inputFile, 'static2a', standard=False)
+    staticThrust2a    = staticThrust(inputFile, 'static2a', standard=False)
 
     # Obtain values from data
     CmTc  = param.CmTc
@@ -69,6 +72,7 @@ def calcElevDeflection(inputFile):
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
     linregress = sc.stats.linregress(aoa, delta)
     Cma = linregress.slope * - Cmdelta
+
     return deltaRed, Cma
 
 
@@ -85,14 +89,14 @@ def calcElevContrForce(inputFile):
     '''
 
     # Import data
-    param = ParametersOld()
-    static2a = staticMeas(inputFile, 'static2a',SI=True)
-    
+    param          = ParametersOld()
+    static2a       = staticMeas(inputFile, 'static2a', SI=True)
+    static2aWeight = calcWeightCG(inputFile, 'static2a')
 
     # Obtain values from data
     Ws = param.Ws
     Fe = static2a['Fe'].to_numpy()
-    W = 123#weight function ...
+    W  = static2aWeight['Weight'].to_numpy()
 
     # Calculation
     FeRed = Fe * Ws / W
