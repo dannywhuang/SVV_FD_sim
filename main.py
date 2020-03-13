@@ -386,6 +386,43 @@ class weightOld:
         self.MomBem = 2672953.5*0.45359*0.0254
 
 
+class ParametersStatic:
+    def __init__(self):
+
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
+
+        # Aircraft geometry
+        self.S = 30.00  # wing area [m^2]
+        self.Sh = 0.2 * self.S  # stabiliser area [m^2]
+        self.Sh_S = self.Sh / self.S  # [ ]
+        self.lh = 0.71 * 5.968  # tail length [m]
+        self.c = 2.0569  # mean aerodynamic cord [m]
+        self.lh_c = self.lh / self.c  # [ ]
+        self.b = 15.911  # wing span [m]
+        self.bh = 5.791  # stabilser span [m]
+        self.A = self.b ** 2 / self.S  # wing aspect ratio [ ]
+        self.Ah = self.bh ** 2 / self.Sh  # stabilser aspect ratio [ ]
+        self.Vh_V = 1  # [ ]self.
+        self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
+        self.xcg = 0.25 * self.c
+        self.d = 0.69 # fan diameter engine [m]
+
+        # Constant values concerning atmosphere and gravity
+        self.rho0 = 1.2250  # air density at sea level [kg/m^3]
+        self.lamb = -0.0065  # temperature gradient in ISA [K/m]
+        self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
+        self.R      = 287.05  # specific gas constant [m^2/sec^2K]
+        self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
+
+        # Stability derivatives
+        self.CmTc = -0.0064
+
+
+
 class ParametersOld:
     '''
         DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
@@ -393,14 +430,14 @@ class ParametersOld:
         INPUT:\n
         ... Can be left empty when dealing with the static measurement series \n
         ... fileName [String]:          As default set to 'reference'. This is the name of the CSV file containing all dynamic measurements\n
-        ... t0 [Value]:                 As default set to 10. At what time do you want the stationary flight condition variables?\n
+        ... t0 [Value]:                 As default set to 3000. At what time do you want the stationary flight condition variables?\n
 
         OUTPUT:\n
         ... ParametersOld [Class]:      Class containing the parameters\n
         '''
 
     #initial unimproved parameters from appendix C
-    def __init__(self, fileName ,t0,SI=True):
+    def __init__(self, fileName ,t0=3000,SI=True):
         if SI==True:
             df = import_dynamic.sliceTime(fileName,t0,1,SI) # duration is set to 1 second but first element is always taken anyway
         elif SI==False:
