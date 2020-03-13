@@ -3,9 +3,13 @@ import scipy as sc
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from import_static import staticMeas, staticFlightCondition, staticThrust
-from import_weight import calcWeightCG
-from main import ParametersStatic
+# from import_static import staticMeas, staticFlightCondition, staticThrust
+# from import_weight import calcWeightCG
+# from main import ParametersStatic
+
+import import_static
+import import_weight 
+import main
 
 
 def calcAeroCoeff(inputFile, dataSet):
@@ -22,12 +26,12 @@ def calcAeroCoeff(inputFile, dataSet):
     '''
 
     # Import data
-    param            = ParametersStatic()
-    static           = staticMeas(inputFile, dataSet)
-    staticNotSI      = staticMeas(inputFile, dataSet, SI=False)
-    staticFlightCond = staticFlightCondition(inputFile, dataSet)
-    staticTp         = staticThrust(inputFile, dataSet)
-    staticWeight     = calcWeightCG(inputFile, dataSet)
+    param            = main.ParametersStatic()
+    static           = import_static.staticMeas(inputFile, dataSet)
+    staticNotSI      = import_static.staticMeas(inputFile, dataSet, SI=False)
+    staticFlightCond = import_static.staticFlightCondition(inputFile, dataSet)
+    staticTp         = import_static.staticThrust(inputFile, dataSet)
+    staticWeight     = import_weight.calcWeightCG(inputFile, dataSet)
 
     # Obtain vales from data
     S   = param.S
@@ -76,7 +80,7 @@ def plotPolar(inputFile):
     OUTPUT:\n
     '''
 
-    static1 = staticMeas(inputFile,'static1')
+    static1 = import_static.staticMeas(inputFile,'static1')
     aeroCoeff = calcAeroCoeff(inputFile,'static1')
 
     aoa = static1['aoa'].to_numpy()
