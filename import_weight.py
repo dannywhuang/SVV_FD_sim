@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import scipy as sc 
 
-from import_static import staticMeas 
-from main import weightOld
+import import_static
+import import_dynamic
+import main
 
 
 def FindFuelMoments():
@@ -37,7 +38,7 @@ def FindFuelMoments():
     return MomF
    
 
-def CalcWeightCG(inputFile, dataSet):
+def calcWeightCG(inputFile, dataSet):
     '''
     DESCRIPTION:    Gives dataframe for Weight and Xcg
     ========
@@ -49,15 +50,15 @@ def CalcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = weightOld()
+    pay = main.weightOld()
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
 
     if dataSet == 'dynamic':
-        MeasData = pd.read_csv('dynamicData/reference_SI.csv')
+        MeasData = import_dynamic.dynamicMeas(inputFile,SI=True)
     elif dataSet in ['static1','static2a','static2b']:
-        MeasData = staticMeas(inputFile, dataSet)
+        MeasData = import_static.staticMeas(inputFile, dataSet)
     else:
         raise ValueError("invalid input for 'dataSet'; choose between 'static1', 'static2a', 'static2b' or 'dynamic'")
 
@@ -119,6 +120,10 @@ def CalcWeightCG(inputFile, dataSet):
     dataNames = ['Weight','Xcg']
     for name in dataNames:
         MassBal[name] = locals()[name]
+
+    if dataSet == 'dynamic':
+        MassBal['time'] = MeasData['time']
+
     MassBal = pd.DataFrame(data=MassBal)
     
     return MassBal

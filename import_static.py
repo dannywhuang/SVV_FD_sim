@@ -3,7 +3,7 @@ import numpy as np
 import os
 from numpy import sqrt
 
-from main import ParametersOld
+import main
 
 
 # To create files
@@ -214,7 +214,7 @@ def staticFlightCondition(inputFile, dataSet):
     '''
 
     meas = staticMeas(inputFile, dataSet, SI=True)
-    param = ParametersOld()
+    param = main.ParametersOld()
 
     # Constant values
     pres0 = param.pres0
@@ -271,7 +271,7 @@ def staticThrust(inputFile, dataSet, standard=False):
     '''
 
     # Import data
-    param = ParametersOld()
+    param = main.ParametersOld('reference',10,1)
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
 
     # Obtain values from data
