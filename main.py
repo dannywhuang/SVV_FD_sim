@@ -2,7 +2,7 @@
 import numpy as np
 from math import cos, pi, sin, tan, pow
 from import_dynamic import sliceTime
-#import control.matlab as ml
+import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
@@ -386,42 +386,63 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
-def eigval(param):
 
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+
+
+def Dutchroll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference',t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
     eigv = np.linalg.eig(Aa)[0]
-    return eigv
-
-
-def chareq_as(param):
-    p = param
-
     # dutch roll
     A = 8*p.mub**2*p.KZ2
     B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
     C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
     ev_dr = np.roots([A, B, C])
+    return ev_dr, eigv[1:3]*p.b/p.V0
 
-    # dutch roll further simplification
+
+def Dutchroll_simp(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
     As = -2*p.mub*p.KZ2
     Bs = 0.5*p.Cnr
     Cs = -p.Cnb
     ev_drs = np.roots([As, Bs, Cs])
+    return ev_drs, eigv[1:3]*p.b/p.V0
 
-    #  heavily damped aperiodic roll
+def Aperiodic_roll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues Aperiodic roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
     evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+    return evdamped_ap, eigv[0]*p.b/p.V0
 
-    # spiral
+
+
+def Spiral(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues spiral and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
     ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
-
-    # dutch roll and aperiodic roll
-
-    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
-    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
-    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
-    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
-    ev3 = np.roots([A3, B3, C3, D3])
-
+    return ev_spiral, eigv[3]*p.b/p.V0
 
         
 def main():
@@ -434,21 +455,20 @@ def main():
     # create parameters for different motions from data
     paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
 
-    param = ParametersOld(fileName='reference',t0=tPhugoid)
+    ev_dr, ss_d = Dutchroll(tDutchRoll)
+    ev_drs, ss_ds = Dutchroll_simp(tDutchRoll)
+    evdamped_ap, ss_ap = Aperiodic_roll(tAperRoll)
+    ev_spiral, ss_sp = Spiral(tSpiral)
 
-    a_eig=eigval(param)
-    print("eigenvalues ss: ", a_eig)
-
-    ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
-    print("eigenvalues dutch roll:",ev_dr)
-    print("eigenvalues dutch role simplified:",ev_drs)
-    print("eigenvalue  damped aperiodic roll:",evdamped_ap)
-    print("eigenvalue  spiral:", ev_spiral)
-    print("eigenvalues dutch roll and aperiodic", ev3 )
+    print("eigenvalues dutch roll char eq:",ev_dr,"ss-->",ss_d)
+    print("eigenvalues dutch role simplified char eq:",ev_drs,"ss-->",ss_ds)
+    print("eigenvalue  damped aperiodic roll char eq:",evdamped_ap,"ss-->",ss_ap)
+    print("eigenvalue  spiral char eq:", ev_spiral,"ss-->",ss_sp)
 
 
 
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+
+    #As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
     # print("State matrices are:")
     # print("As: ", As)
     # print("Bs: ", Bs)
@@ -466,9 +486,9 @@ def main():
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
-    plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
-    plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
+   # plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
+   # plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
+   # plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
