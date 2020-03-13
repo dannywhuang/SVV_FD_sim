@@ -25,7 +25,8 @@ def sampleFunction(param):
     s = param.b+param.S+param.c
     return s
 
-def calcEigenState(As,Aa):
+
+def calcEigenState(param):
     '''
     DESCRIPTION:    Calculate eigenvalues of state space matrix
     ========
@@ -37,9 +38,11 @@ def calcEigenState(As,Aa):
     ... eigenSym [Array]:            Array with eigen values for As\n
     ... eigenAsym [Array]:           Array with eigen values for Aa
     '''
-    eigenSym = np.linalg.eig(As)
-    eigenAsym = np.linalg.eig(Aa)
-    return eigenSym,eigenAsym
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
+    eigSym = np.linalg.eig(Aa)[0]
+    eigAsym = np.linalg.eig(As)[0]
+    return eigSym,eigAsym
+
 
 def calcEigenShortPeriod(param):
     '''
@@ -78,6 +81,36 @@ def calcEigenPhugoid(param):
     p2 = [A2,B2,C2]
     lambda2 = np.roots(p2)
     return lambda2
+
+
+def chareq_as(param):
+    p = param
+
+    # dutch roll
+    A = 8*p.mub**2*p.KZ2
+    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
+    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
+    ev_dr = np.roots([A, B, C])
+
+    # dutch roll further simplification
+    As = -2*p.mub*p.KZ2
+    Bs = 0.5*p.Cnr
+    Cs = -p.Cnb
+    ev_drs = np.roots([As, Bs, Cs])
+
+    #  heavily damped aperiodic roll
+    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+
+    # spiral
+    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
+
+    # dutch roll and aperiodic roll
+
+    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
+    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
+    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
+    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
+    ev3 = np.roots([A3, B3, C3, D3])
 
 
 def calcResponse(t0,duration,fileName,param):
@@ -292,8 +325,27 @@ def plotMotionsTest(fileName,t0,duration,motionName):
             plt.show()
     return
 
-class weightOld:
 
+class DynamicTime:
+    def __init__(self,fileName):
+        if fileName =='reference':
+            self.tPhugoid = 3237
+            self.tShortPeriod = 3635
+            self.tDutchRoll = 3717
+            self.tDutchRollYD = 3767
+            self.tAperRoll = 3550
+            self.tSpiral = 3920
+        elif fileName =='actual':
+            #need to be filled in manually after obtaining flight test data
+            self.tPhugoid = 0
+            self.tShortPeriod = 0
+            self.tDutchRoll = 0
+            self.tDutchRollYD = 0
+            self.tAperRoll = 0
+            self.tSpiral = 0
+
+
+class weightOld:
     def __init__(self):
 
         self.mpilot1 = 95                   # [kg]
@@ -314,6 +366,7 @@ class weightOld:
         self.locSwitch = 7                  #Initial Seat Location of the person who switched
         self.MBem = 9165*0.45359
         self.MomBem = 2672953.5*0.45359*0.0254
+
 
 class ParametersOld:
     '''
@@ -445,60 +498,20 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
-def eigval(param):
-
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
-    eigv = np.linalg.eig(Aa)[0]
-    return eigv
-
-
-def chareq_as(param):
-    p = param
-
-    # dutch roll
-    A = 8*p.mub**2*p.KZ2
-    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
-    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
-    ev_dr = np.roots([A, B, C])
-
-    # dutch roll further simplification
-    As = -2*p.mub*p.KZ2
-    Bs = 0.5*p.Cnr
-    Cs = -p.Cnb
-    ev_drs = np.roots([As, Bs, Cs])
-
-    #  heavily damped aperiodic roll
-    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
-
-    # spiral
-    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
-
-    # dutch roll and aperiodic roll
-
-    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
-    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
-    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
-    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
-    ev3 = np.roots([A3, B3, C3, D3])
-
 
         
 def main():
-    tPhugoid = 3237
-    tShortPeriod = 3635
-    tDutchRoll = 3717
-    tDutchRollYD = 3767
-    tAperRoll = 3550
-    tSpiral = 3920
-    # create parameters for different motions from data
-    paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
-    paramShortPeriod = ParametersOld(fileName='reference',t0=tShortPeriod)
+    tRef = DynamicTime(fileName='reference')
+    paramPhugoid = ParametersOld(fileName='reference',t0=tRef.tPhugoid) #Create parameters for phugoid motion
+    paramShortPeriod = ParametersOld(fileName='reference',t0=tRef.tShortPeriod)
+    paramDutchRoll = ParametersOld(fileName='reference',t0=tRef.tDutchRoll)
+    paramDutchRollYD = ParametersOld(fileName='reference', t0=tRef.tDutchRollYD)
+    paramAperRoll = ParametersOld(fileName='reference', t0=tRef.tAperRoll)
+    paramSpiral = ParametersOld(fileName='reference', t0=tRef.tSpiral)
 
 
-    param = ParametersOld(fileName='reference',t0=tPhugoid)
-
-    a_eig=eigval(param)
-    print("eigenvalues ss: ", a_eig)
+    #a_eig=eigval(param)
+    #print("eigenvalues ss: ", a_eig)
 
     # ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
     # print("eigenvalues dutch roll:",ev_dr)
