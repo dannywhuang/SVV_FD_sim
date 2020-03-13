@@ -1,10 +1,10 @@
 import scipy as sc
 import numpy as np
 
-from main import ParametersOld
 from import_static import staticMeas, staticThrust
 from import_weight import calcWeightCG
 from staticCalc1 import calcAeroCoeff
+from main import ParametersStatic
 
 
 def calcElevEffectiveness(inputFile):
@@ -20,7 +20,7 @@ def calcElevEffectiveness(inputFile):
     '''
 
     # Import data
-    param          = ParametersOld()
+    param          = ParametersStatic()
     static2b       = staticMeas(inputFile, 'static2b', SI=True)
     aeroCoeff      = calcAeroCoeff(inputFile, 'static2b')
     static2bWeight = calcWeightCG(inputFile, 'static2b')
@@ -55,7 +55,7 @@ def calcElevDeflection(inputFile):
     '''
 
     # Import data
-    param             = ParametersOld()
+    param             = ParametersStatic()
     static2a          = staticMeas(inputFile, 'static2a', SI=True)
     staticThrust2aRed = staticThrust(inputFile, 'static2a', standard=True)
     staticThrust2a    = staticThrust(inputFile, 'static2a', standard=False)
@@ -89,7 +89,7 @@ def calcElevContrForce(inputFile):
     '''
 
     # Import data
-    param          = ParametersOld()
+    param          = ParametersStatic()
     static2a       = staticMeas(inputFile, 'static2a', SI=True)
     static2aWeight = calcWeightCG(inputFile, 'static2a')
 
