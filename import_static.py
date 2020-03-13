@@ -3,7 +3,8 @@ import numpy as np
 import os
 from numpy import sqrt
 
-from main import ParametersOld
+from main import ParametersStatic
+from import_weight import calcWeightCG
 
 
 # To create files
@@ -81,10 +82,11 @@ def convertStaticToSI(inputFile):
         df2a[knotsName] = df2a[knotsName] * 0.514444444
         df2b[knotsName] = df2b[knotsName] * 0.514444444
 
-    degList = ['delta', 'deltaTr']
-    for degName in degList:             
+    degList = ['delta', 'deltaTr', 'aoa']
+    for degName in degList:            
         df2a[degName] = np.radians(df2a[degName])           # convert degrees or degrees/s to radians or radians/s
         df2b[degName] = np.radians(df2b[degName])
+    df1['aoa'] = np.radians(df1['aoa'])
 
     lbsHrList = ['FFl', 'FFr']
     for lbsHrName in lbsHrList:
@@ -123,7 +125,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-    param = ParametersOld()
+    param = ParametersStatic()
 
     thrustData1 = {}
     thrustData2a = {}
@@ -213,8 +215,10 @@ def staticFlightCondition(inputFile, dataSet):
     ... staticFlightCond [Dataframe]:   Pandas dataframe containing flight condition values that are not measured.
     '''
 
-    meas = staticMeas(inputFile, dataSet, SI=True)
-    param = ParametersOld()
+    # Import data
+    meas  = staticMeas(inputFile, dataSet, SI=True)
+    param = ParametersStatic()
+    staticWeight = calcWeightCG(inputFile,dataSet)
 
     # Constant values
     pres0 = param.pres0
@@ -222,18 +226,14 @@ def staticFlightCondition(inputFile, dataSet):
     Temp0 = param.Temp0 
     g0    = param.g 
     Ws    = param.Ws
-
     gamma = param.gamma
     lamb  = param.lamb 
     R     = param.R
 
     Vc       = meas['Vi'].to_numpy()
-
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
-
-    # Function values
-    W = 123#weight function ...
+    W        = staticWeight['Weight'].to_numpy()
 
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
@@ -270,29 +270,39 @@ def staticThrust(inputFile, dataSet, standard=False):
     ... df [Dataframe]:                 Pandas dataframe containing Thrust of the left and right engine & the total Thrust.
     '''
 
+    # Import data
+    param = ParametersStatic()
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
+
+    # Obtain values from data
     rho = staticFlightCond['rho'].to_numpy()
-    Vt = staticFlightCond['Vt'].to_numpy()
-    D  = 5 #check this !!!!!!!!!!!!!!!!!!!!
+    Vt  = staticFlightCond['Vt'].to_numpy()
+    d   = param.d 
 
     if standard == True:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/standard/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
         df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
-        df['Tcs']  = df['Tp'].to_numpy() / (rho * Vt**2 * D**2)
+        df['Tcs']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     elif standard == False:
         df = pd.read_csv('staticData/thrust_'+inputFile+'/'+dataSet+'/thrust.dat',sep='\t',header=None)
         df.columns = ['Tpl','Tpr']
         df['Tp']   = df['Tpl'].to_numpy() + df['Tpr'].to_numpy()
-        df['Tc']  = df['Tp'].to_numpy() / (rho * Vt**2 * D**2)
+        df['Tc']  = df['Tp'].to_numpy() / (0.5 * rho * Vt**2 * d**2)
     return df
 
 
 ''' Create data files from the provided/measured data '''
-excelToCSV('reference')
-convertStaticToSI('reference')
-thrustToDAT('reference', SI=True, standard=False)
-thrustToDAT('reference', SI=True, standard=True)
+# excelToCSV('reference')
+# convertStaticToSI('reference')
+# thrustToDAT('reference', SI=True, standard=False)
+# thrustToDAT('reference', SI=True, standard=True)
+
+# excelToCSV('actual')
+# convertStaticToSI('actual')
+# thrustToDAT('actual', SI=True, standard=False)
+# thrustToDAT('actual', SI=True, standard=True)
+
 
 
 
@@ -312,14 +322,14 @@ thrustToDAT('reference', SI=True, standard=True)
 # static2b_SI = staticMeas('reference', 'static2b')
 
 
-# staticCond1  = staticFlightCondition('reference', 'static1')
-# staticCond2a = staticFlightCondition('reference', 'static2a')
-# staticCond2b = staticFlightCondition('reference', 'static2b')
+staticCond1  = staticFlightCondition('reference', 'static1')
+staticCond2a = staticFlightCondition('reference', 'static2a')
+staticCond2b = staticFlightCondition('reference', 'static2b')
 
 
-# staticThrust1  = staticThrust('reference','static1',standard=False)
-# staticThrust2a = staticThrust('reference','static2a',standard=False)
-# staticThrust2b = staticThrust('reference','static2b',standard=False)
+staticThrust1  = staticThrust('reference','static1',standard=False)
+staticThrust2a = staticThrust('reference','static2a',standard=False)
+staticThrust2b = staticThrust('reference','static2b',standard=False)
 
 # print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
 # print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')

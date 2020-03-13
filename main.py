@@ -1,11 +1,13 @@
 #Initial numerical model before making improvements to parameters
 import numpy as np
 from math import cos, pi, sin, tan, pow
-from import_dynamic import sliceTime
 import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
+import import_static
+import import_dynamic
+import import_weight
 
 #global constants
 g = 9.81
@@ -24,6 +26,90 @@ def sampleFunction(param):
 
     s = param.b+param.S+param.c
     return s
+
+
+def calcEigenShortPeriod(param):
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+
+    OUTPUT:\n
+    ... lambda [Array]:            Array with eigen values for analytical model short period motion
+    '''
+    # Short period
+    A = 2*param.muc*param.KY2*(2*param.muc-param.CZadot)
+    B = -2*param.muc*param.KY2*param.CZa-(2*param.muc+param.CZq)*param.Cmadot-(2*param.muc-param.CZadot)*param.Cmq
+    C = param.CZa*param.Cmq-(2*param.muc+param.CZq)*param.Cma
+    p = [A,B,C]
+    lambdac = np.roots(p)
+
+    # Simplified short period
+    A2 = -2 * param.muc * param.KY2
+    B2 = param.Cmadot + param.Cmq
+    C2 = param.Cma
+    p2 = [A2, B2, C2]
+    lambdac2 = np.roots(p2)
+
+    return lambdac, lambdac2
+
+
+def calcEigenPhugoid(param):
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+
+    OUTPUT:\n
+    ... lambda [Array]:            Array with eigen values for analytical model phugoid motion
+    '''
+    # Phugoid
+    A = 2*param.muc*(param.CZa*param.Cmq-2*param.muc*param.Cma)
+    B = 2*param.muc*(param.CXu*param.Cma - param.Cmu*param.CXa) + param.Cmq*(param.CZu *param.CXa - param.CXu*param.CZa)
+    C = param.CZ0*(param.Cmu*param.CZa - param.CZu*param.Cma)
+    p = [A,B,C]
+    lambdac = np.roots(p)
+
+    # Simplified phugoid
+    A2 = -4*param.muc**2
+    B2 = 2*param.muc*param.CXu
+    C2 = -param.CZu*param.CZ0
+    p2 = [A2,B2,C2]
+    lambdac2 = np.roots(p2)
+
+    return lambdac, lambdac2
+
+
+def chareq_as(param):
+    p = param
+
+    # dutch roll
+    A = 8*p.mub**2*p.KZ2
+    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
+    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
+    ev_dr = np.roots([A, B, C])
+
+    # dutch roll further simplification
+    As = -2*p.mub*p.KZ2
+    Bs = 0.5*p.Cnr
+    Cs = -p.Cnb
+    ev_drs = np.roots([As, Bs, Cs])
+
+    #  heavily damped aperiodic roll
+    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+
+    # spiral
+    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
+
+    # dutch roll and aperiodic roll
+
+    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
+    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
+    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
+    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
+    ev3 = np.roots([A3, B3, C3, D3])
 
 
 def calcResponse(t0,duration,fileName,param):
@@ -51,7 +137,7 @@ def calcResponse(t0,duration,fileName,param):
     stateSpaceA = ml.ss(Aa,Ba,Ca,Da)
 
     # get data from the dynamic measurement file
-    dfTime = sliceTime(fileName,t0,duration)
+    dfTime = import_dynamic.sliceTime(fileName,t0,duration)
     time = dfTime['time']
     delta_a = dfTime['delta_a']
     delta_e = dfTime['delta_e']
@@ -80,7 +166,7 @@ def stateSpace(param):
     ... param [Class]:                          Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
     
     OUTPUT:\n
-    ... As,Bs,Cs,Ds,Aa,Ba,Ca,Da [np.matrix]:    State-space matrices A,B,C,D for (s)ymmetric and (a)symmetric equations of moton
+    ... ss [Class]:                             Class containing state-space matrices A,B,C,D and eigenvalues for (s)ymmetric and (a)symmetric equations of moton
     '''
 
     C1s = np.matrix([[ -2*param.muc*(param.c/param.V0) , 0 , 0 , 0 ],
@@ -125,7 +211,12 @@ def stateSpace(param):
     Ca = np.eye(4)
     Da = np.zeros((4, 2))
 
-    return As,Bs,Cs,Ds,Aa,Ba,Ca,Da
+    Eigs = np.linalg.eig(As)[0]*(param.c/param.V0)
+    Eiga = np.linalg.eig(Aa)[0]*(param.b/param.V0)
+
+    ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga) #class
+
+    return ss
 
 
 def plotMotionsTest(fileName,t0,duration,motionName):
@@ -146,7 +237,7 @@ def plotMotionsTest(fileName,t0,duration,motionName):
         print('Please use the file name of the flight data in SI units')
         return
     else:
-        dfTime = sliceTime(fileName,t0,duration)
+        dfTime = import_dynamic.sliceTime(fileName,t0,duration)
         time = dfTime['time'].to_numpy()
 
         if motionName=='phugoid' or motionName=='short period':
@@ -238,24 +329,99 @@ def plotMotionsTest(fileName,t0,duration,motionName):
             plt.show()
     return
 
-class weightOld:
 
+class StateSpace:
+    def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
+        self.As = As
+        self.Bs = Bs
+        self.Cs = Cs
+        self.Ds = Ds
+        self.Aa = Aa
+        self.Ba = Ba
+        self.Ca = Ca
+        self.Da = Da
+        self.Eigs = Eigs
+        self.Eiga = Eiga
+
+
+class DynamicTime:
+    def __init__(self,fileName):
+        if fileName =='reference':
+            self.tPhugoid = 3237
+            self.tShortPeriod = 3635
+            self.tDutchRoll = 3717
+            self.tDutchRollYD = 3767
+            self.tAperRoll = 3550
+            self.tSpiral = 3920
+        elif fileName =='actual':
+            #need to be filled in manually after obtaining flight test data
+            self.tPhugoid = 0
+            self.tShortPeriod = 0
+            self.tDutchRoll = 0
+            self.tDutchRollYD = 0
+            self.tAperRoll = 0
+            self.tSpiral = 0
+
+
+class weightOld:
     def __init__(self):
 
-        self.mpilot1 = 95                 # [kg]
-        self.mpilot2 = 92                 # [kg]
-        self.mcoordinator = 74            # [kg]
-        self.mobserver1L = 66             # [kg]
-        self.mobserver1R = 61             # [kg]
-        self.mobserver2L = 75             # [kg]
-        self.mobserver2R = 78             # [kg]
-        self.mobserver3L = 86             # [kg]
-        self.mobserver3R = 68             # [kg]
+        self.mpilot1 = 95                   # [kg]
+        self.mpilot2 = 92                   # [kg]
+        self.mcoordinator = 74              # [kg]
+        self.mobserver1L = 66               # [kg]
+        self.mobserver1R = 61               # [kg]
+        self.mobserver2L = 75               # [kg]
+        self.mobserver2R = 78               # [kg]
+        self.mobserver3L = 86               # [kg]
+        self.mobserver3R = 68               # [kg]
 
-        self.mblockfuel = 4050*0.45359237 # [kg]
+        self.mblockfuel = 4050*0.45359237   # [kg]
 
         self.position1 = 288
         self.position2 = 134
+
+        self.locSwitch = 7                  #Initial Seat Location of the person who switched
+        self.MBem = 9165*0.45359
+        self.MomBem = 2672953.5*0.45359*0.0254
+
+
+class ParametersStatic:
+    def __init__(self):
+
+        # Standard values
+        self.Ws = 60500 # Standard weight [N]
+        self.ms = 0.048 # Standard mass flow [kg/s]
+
+        # Aircraft geometry
+        self.S = 30.00  # wing area [m^2]
+        self.Sh = 0.2 * self.S  # stabiliser area [m^2]
+        self.Sh_S = self.Sh / self.S  # [ ]
+        self.lh = 0.71 * 5.968  # tail length [m]
+        self.c = 2.0569  # mean aerodynamic cord [m]
+        self.lh_c = self.lh / self.c  # [ ]
+        self.b = 15.911  # wing span [m]
+        self.bh = 5.791  # stabilser span [m]
+        self.A = self.b ** 2 / self.S  # wing aspect ratio [ ]
+        self.Ah = self.bh ** 2 / self.Sh  # stabilser aspect ratio [ ]
+        self.Vh_V = 1  # [ ]self.
+        self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
+        self.xcg = 0.25 * self.c
+        self.d = 0.69 # fan diameter engine [m]
+
+        # Constant values concerning atmosphere and gravity
+        self.rho0 = 1.2250  # air density at sea level [kg/m^3]
+        self.lamb = -0.0065  # temperature gradient in ISA [K/m]
+        self.Temp0  = 288.15  # temperature at sea level in ISA [K]
+        self.pres0 = 101325 # pressure at sea level in ISA [pa]
+        self.R      = 287.05  # specific gas constant [m^2/sec^2K]
+        self.g      = 9.81  # [m/sec^2] (gravity constant)
+        self.gamma = 1.4 # 
+
+        # Stability derivatives
+        self.CmTc = -0.0064
+
+
 
 class ParametersOld:
     '''
@@ -264,28 +430,33 @@ class ParametersOld:
         INPUT:\n
         ... Can be left empty when dealing with the static measurement series \n
         ... fileName [String]:          As default set to 'reference'. This is the name of the CSV file containing all dynamic measurements\n
-        ... t0 [Value]:                 As default set to 10. At what time do you want the stationary flight condition variables?\n
+        ... t0 [Value]:                 As default set to 3000. At what time do you want the stationary flight condition variables?\n
 
         OUTPUT:\n
         ... ParametersOld [Class]:      Class containing the parameters\n
         '''
 
     #initial unimproved parameters from appendix C
-    def __init__(self, fileName = 'reference', t0=3000):
+    def __init__(self, fileName ,t0=3000,SI=True):
+        if SI==True:
+            df = import_dynamic.sliceTime(fileName,t0,1,SI) # duration is set to 1 second but first element is always taken anyway
+        elif SI==False:
+            df = import_dynamic.sliceTime(fileName, t0, 1,SI)  # duration is set to 1 second but first element is always taken anyway
+        else:
+            raise ValueError("Enter SI = True or SI = False")
 
-
-        df = sliceTime(fileName,t0,1) # duration is set to 1 second but first element is always taken anyway
-
-
+        self.t0actual = df['time'].to_numpy()[0]
         # Stationary flight condition
         self.hp0 = df['Dadc1_alt'].to_numpy()[0] # pressure altitude in the stationary flight condition [m]
         self.V0 = df['Dadc1_tas'].to_numpy()[0] # true airspeed in the stationary flight condition [m/sec]
         self.alpha0 = df['vane_AOA'].to_numpy()[0] # angle of attack in the stationary flight condition [rad]
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
+        dfMass = import_weight.calcWeightCG(fileName,'dynamic')
+        dfMassSliced = dfMass.loc[(dfMass['time'] == self.t0actual)]
 
-        self.m = 6800  # use calculate weight function
-
+        self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
+        print(self.m)
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
         # Standard values
@@ -315,6 +486,7 @@ class ParametersOld:
         self.Vh_V = 1  # [ ]self.
         self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
         self.xcg = 0.25 * self.c
+        self.d = 0.69 # fan diameter engine [m]
 
         # Constant values concerning atmosphere and gravity
         self.rho0 = 1.2250  # air density at sea level [kg/m^3]
@@ -388,7 +560,6 @@ class ParametersOld:
         self.Cndr = -0.0939
 
 
-
 def Dutchroll(t):
     '''
         param t: eigenmotion time
@@ -432,7 +603,6 @@ def Aperiodic_roll(t):
     return evdamped_ap, eigv[0]*p.b/p.V0
 
 
-
 def Spiral(t):
     '''
         param t: eigenmotion time
@@ -443,17 +613,30 @@ def Spiral(t):
     eigv = np.linalg.eig(Aa)[0]
     ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
     return ev_spiral, eigv[3]*p.b/p.V0
-
+  
         
 def main():
-    tPhugoid = 3237
-    tShortPeriod = 3635
-    tDutchRoll = 3717
-    tDutchRollYD = 3767
-    tAperRoll = 3550
-    tSpiral = 3920
-    # create parameters for different motions from data
-    paramPhugoid = ParametersOld(fileName='reference',t0=tPhugoid) #Create parameters for phugoid motion
+    tRef = DynamicTime(fileName='reference')
+    paramPhugoid = ParametersOld(fileName='reference',t0=tRef.tPhugoid,SI=True) #Create parameters for phugoid motion
+    paramShortPeriod = ParametersOld(fileName='reference',t0=tRef.tShortPeriod,SI=True)
+    # paramDutchRoll = ParametersOld(fileName='reference',t0=tRef.tDutchRoll)
+    # paramDutchRollYD = ParametersOld(fileName='reference', t0=tRef.tDutchRollYD)
+    # paramAperRoll = ParametersOld(fileName='reference', t0=tRef.tAperRoll)
+    # paramSpiral = ParametersOld(fileName='reference', t0=tRef.tSpiral)
+
+    ssPhugoid = stateSpace(paramPhugoid)
+    ssShortPeriod = stateSpace(paramShortPeriod)
+    # ssDutchRoll = stateSpace(paramDutchRoll)
+    # ssDutchRollYD = stateSpace(paramDutchRollYD)
+    # ssAperRoll = stateSpace(paramAperRoll)
+    # ssSpiral = stateSpace(paramSpiral)
+
+    eigPhugoid,eigPhugoidSimplified = calcEigenPhugoid(paramPhugoid)
+    eigShortPeriod, eigShortPeriodSimplified = calcEigenShortPeriod(paramShortPeriod)
+
+    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs)
+    print("eigenvalues an Phugoid:",eigPhugoid)
+    print("eigenvalues an Phugoid Simplified:", eigPhugoidSimplified)
 
     ev_dr, ss_d = Dutchroll(tDutchRoll)
     ev_drs, ss_ds = Dutchroll_simp(tDutchRoll)
@@ -464,8 +647,6 @@ def main():
     print("eigenvalues dutch role simplified char eq:",ev_drs,"ss-->",ss_ds)
     print("eigenvalue  damped aperiodic roll char eq:",evdamped_ap,"ss-->",ss_ap)
     print("eigenvalue  spiral char eq:", ev_spiral,"ss-->",ss_sp)
-
-
 
 
     #As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
@@ -480,15 +661,19 @@ def main():
     # print("Da: ", Da)
 
     # simulate response using relevant parameters
-    XoutS, YoutS, XoutA, YoutA, tS, tA = calcResponse(tPhugoid,20,'reference',paramPhugoid)
+    #XoutS, YoutS, XoutA, YoutA, tS, tA = calcResponse(tPhugoid,20,'reference',paramPhugoid)
 
+    #eigenSym, eigenAsym = calcEigenState(As,Aa)
+    #eigenPhugoid = calcEigenPhugoid(paramPhugoid)
+    #print("State space symmetric eigenvalues",eigenSym)
+    #print("Analytical phugoid eigenvalues",eigenPhugoid)
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-   # plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
-   # plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
-   # plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
+    # plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
+    # plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
+    # plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
