@@ -5,7 +5,7 @@ import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
-import import_static
+# import import_static
 import import_dynamic
 import import_weight
 
@@ -364,26 +364,49 @@ class DynamicTime:
 
 
 class weightOld:
-    def __init__(self):
+    def __init__(self, inputFile):
 
-        self.mpilot1 = 95                   # [kg]
-        self.mpilot2 = 92                   # [kg]
-        self.mcoordinator = 74              # [kg]
-        self.mobserver1L = 66               # [kg]
-        self.mobserver1R = 61               # [kg]
-        self.mobserver2L = 75               # [kg]
-        self.mobserver2R = 78               # [kg]
-        self.mobserver3L = 86               # [kg]
-        self.mobserver3R = 68               # [kg]
+        if inputFile == 'reference':
 
-        self.mblockfuel = 4050*0.45359237   # [kg]
+            self.mpilot1 = 95                   # [kg]
+            self.mpilot2 = 92                   # [kg]
+            self.mcoordinator = 74              # [kg]
+            self.mobserver1L = 66               # [kg]
+            self.mobserver1R = 61               # [kg]
+            self.mobserver2L = 75               # [kg]
+            self.mobserver2R = 78               # [kg]
+            self.mobserver3L = 86               # [kg]
+            self.mobserver3R = 68               # [kg]
 
-        self.position1 = 288
-        self.position2 = 134
+            self.mblockfuel = 4050*0.45359237   # [kg]
 
-        self.locSwitch = 7                  #Initial Seat Location of the person who switched
-        self.MBem = 9165*0.45359
-        self.MomBem = 2672953.5*0.45359*0.0254
+            self.position1 = 288
+            self.position2 = 134
+
+            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.MBem = 9165*0.45359
+            self.MomBem = 2672953.5*0.45359*0.0254
+
+        if inputFile == 'actual':
+            # **** Change these values to the correct ones *****
+            self.mpilot1 = 95                   # [kg]
+            self.mpilot2 = 92                   # [kg]
+            self.mcoordinator = 74              # [kg]
+            self.mobserver1L = 66               # [kg]
+            self.mobserver1R = 61               # [kg]
+            self.mobserver2L = 75               # [kg]
+            self.mobserver2R = 78               # [kg]
+            self.mobserver3L = 86               # [kg]
+            self.mobserver3R = 68               # [kg]
+
+            self.mblockfuel = 4050*0.45359237   # [kg]
+
+            self.position1 = 288
+            self.position2 = 134
+
+            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.MBem = 9165*0.45359
+            self.MomBem = 2672953.5*0.45359*0.0254
 
 
 class ParametersStatic:
