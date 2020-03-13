@@ -559,6 +559,61 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
+
+def Dutchroll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference',t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    # dutch roll
+    A = 8*p.mub**2*p.KZ2
+    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
+    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
+    ev_dr = np.roots([A, B, C])
+    return ev_dr, eigv[1:3]*p.b/p.V0
+
+
+def Dutchroll_simp(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues dutch roll and ss eigenvalue for specific motion
+    '''
+
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    As = -2*p.mub*p.KZ2
+    Bs = 0.5*p.Cnr
+    Cs = -p.Cnb
+    ev_drs = np.roots([As, Bs, Cs])
+    return ev_drs, eigv[1:3]*p.b/p.V0
+
+def Aperiodic_roll(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues Aperiodic roll and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+    return evdamped_ap, eigv[0]*p.b/p.V0
+
+
+def Spiral(t):
+    '''
+        param t: eigenmotion time
+        return: eigenvalues spiral and ss eigenvalue for specific motion
+    '''
+    p = ParametersOld(fileName='reference', t0=t)
+    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
+    eigv = np.linalg.eig(Aa)[0]
+    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
+    return ev_spiral, eigv[3]*p.b/p.V0
+  
         
 def main():
     tRef = DynamicTime(fileName='reference')
@@ -583,20 +638,15 @@ def main():
     print("eigenvalues an Phugoid:",eigPhugoid)
     print("eigenvalues an Phugoid Simplified:", eigPhugoidSimplified)
 
-    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs)
-    print("eigenvalues an Short Period:", eigShortPeriod)
-    print("eigenvalues an Short Period Simplified:", eigShortPeriodSimplified)
+    ev_dr, ss_d = Dutchroll(tDutchRoll)
+    ev_drs, ss_ds = Dutchroll_simp(tDutchRoll)
+    evdamped_ap, ss_ap = Aperiodic_roll(tAperRoll)
+    ev_spiral, ss_sp = Spiral(tSpiral)
 
-    #a_eig=eigval(param)
-    #print("eigenvalues ss: ", a_eig)
-
-    # ev_dr,ev_drs,evdamped_ap,ev_spiral,ev3 = chareq_as(param)
-    # print("eigenvalues dutch roll:",ev_dr)
-    # print("eigenvalues dutch role simplified:",ev_drs)
-    # print("eigenvalue  damped aperiodic roll:",evdamped_ap)
-    # print("eigenvalue  spiral:", ev_spiral)
-    # print("eigenvalues dutch roll and aperiodic", ev3 )
-
+    print("eigenvalues dutch roll char eq:",ev_dr,"ss-->",ss_d)
+    print("eigenvalues dutch role simplified char eq:",ev_drs,"ss-->",ss_ds)
+    print("eigenvalue  damped aperiodic roll char eq:",evdamped_ap,"ss-->",ss_ap)
+    print("eigenvalue  spiral char eq:", ev_spiral,"ss-->",ss_sp)
 
 
     #As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(param)
@@ -618,15 +668,12 @@ def main():
     #print("State space symmetric eigenvalues",eigenSym)
     #print("Analytical phugoid eigenvalues",eigenPhugoid)
 
-
-
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
     # plotMotionsTest('reference_SI',3237,220,'phugoid')  # plot from reference data for phugoid
     # plotMotionsTest('reference_SI',3635,10,'short period')  # plot from reference data for short period
     # plotMotionsTest('reference_SI',3717,18,'dutch roll')  # plot from reference data for dutch roll
-
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
