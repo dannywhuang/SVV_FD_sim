@@ -1,10 +1,10 @@
 import scipy as sc
 import numpy as np
 
-from import_static import staticMeas, staticThrust
-from import_weight import calcWeightCG
-from staticCalc1 import calcAeroCoeff
-from main import ParametersStatic
+# from import_static import staticMeas, staticThrust
+# from import_weight import calcWeightCG
+# from staticCalc1 import calcAeroCoeff
+# from main import ParametersStatic
 
 import import_static
 import import_weight
