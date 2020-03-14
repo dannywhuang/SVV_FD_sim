@@ -1,5 +1,6 @@
 import math 
 
+
 class parametersStatic:
     def __init__(self):
         # Aircraft geometry:
@@ -32,6 +33,7 @@ class parametersStatic:
 
         # Stability derivatives:
         self.CmTc = -0.0064
+
 
 class parametersWeight:
     def __init__(self, inputFile):
@@ -77,3 +79,4 @@ class parametersWeight:
             self.locSwitch = 7                  #Initial Seat Location of the person who switched
             self.MBem = 9165*0.45359
             self.MomBem = 2672953.5*0.45359*0.0254
+
