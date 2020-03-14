@@ -467,7 +467,6 @@ class DynamicTime:
     def __init__(self,fileName):
         if fileName =='reference':
             self.tPhugoid = 3237   -25      #offset to get stationary conditions
-
             self.tShortPeriod = 3635     #offset to get stationary conditions
             self.tDutchRoll = 3717
             self.tDutchRollYD = 3767
@@ -481,7 +480,6 @@ class DynamicTime:
             self.tDutchRollYD = 0
             self.tAperRoll = 0
             self.tSpiral = 0
-
 
 
 class ParametersOld:
