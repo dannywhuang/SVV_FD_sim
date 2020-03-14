@@ -81,7 +81,7 @@ def convertDynToSI(inputFile):
     return
 
 
-def sliceTime(fileName,t0,duration):
+def sliceTime(fileName,t0,duration,SI=True):
     '''
     DESCRIPTION:    Get data from .csv file starting from t0, until t0+duration
     ========
@@ -89,16 +89,31 @@ def sliceTime(fileName,t0,duration):
     ... fileName [String]:          Name of the .csv file\n
     ... t0 [Value]:                 Starting time\n
     ... duration [Value]:           Time duration\n
+    ... SI [Boolean]:               True for SI, false for non SI\n
 
     OUTPUT:\n
     ... dfTime [Dataframe]:         Pandas dataframe containing data from t0 until t0+duration
     '''
-
-    df = pd.read_csv('dynamicData/'+fileName+'.csv')
-    dfTime = df.loc[(df['time'] >= t0) & (df['time'] <= t0+duration)]
-
+    if SI==True:
+        df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')
+        dfTime = df.loc[(df['time'] >= t0) & (df['time'] <= t0+duration)]
+    elif SI==False:
+        df = pd.read_csv('dynamicData/' + fileName + '.csv')
+        dfTime = df.loc[(df['time'] >= t0) & (df['time'] <= t0 + duration)]
+    else:
+        raise ValueError("Enter SI = True or SI = False")
     return dfTime
 
 
-# matToCSV('reference')
-# convertDynToSI('reference')
+def dynamicMeas(fileName,SI=True):
+    if SI==True:
+        df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')
+    elif SI==False:
+        df = pd.read_csv('dynamicData/' + fileName + '.csv')
+    else:
+        raise ValueError("Enter SI = True or SI = False")
+    return df
+
+
+#matToCSV('actual')
+#convertDynToSI('actual')
