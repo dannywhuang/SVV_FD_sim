@@ -1,10 +1,58 @@
 import numpy as np
 import pandas as pd
-import scipy as sc 
+import scipy.interpolate as interp
+ 
+import import_parameters as imPar
 
-import import_static 
-from import_dynamic import dynamicMeas
-from main import weightOld
+
+def staticMeas(inputFile, dataSet, SI=True):
+    '''
+    DESCRIPTION:    Get data from .csv file
+    ========
+    INPUT:\n
+    ... inputFile [String]:         Name of the excel file (e.g. 'reference' or 'actual' )\n
+    ... dataSet [String]:           Name of data file (e.g. 'static1', 'static2a' or 'static2b'\n
+    ... SI [Condition]:             By default set to SI=True\n
+
+    OUTPUT:\n
+    ... df [Dataframe]:             Pandas dataframe containing data
+    '''
+
+    if SI == True:
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'_SI.csv')
+    elif SI == False:
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'.csv')
+    else:
+        raise ValueError("Incorrect SI input; set it either to '=False', '=True' or leave it empty")
+    return df
+
+
+def dynamicMeas(fileName,SI=True):
+    if SI==True:
+        df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')
+    elif SI==False:
+        df = pd.read_csv('dynamicData/' + fileName + '.csv')
+    else:
+        raise ValueError("Enter SI = True or SI = False")
+    return df
+
+
+def excelToCSV(inputFile):
+    '''
+    DESCRIPTION:    Converting fuelmoments data from excel file to csv file
+    ========
+    INPUT:\n
+    ... inputFile [String]:         Excel file name; choose between 'reference' or 'actual'\n
+
+    OUTPUT:\n
+    ... None
+    '''
+
+
+    # Reading the right rows in the excel file
+    fuelm  = pd.read_excel('FuelData/'+inputFile+'.xlsx')
+    fuelm.to_csv('FuelData/'+inputFile+'.csv', index=False)
+    return
 
 
 def findFuelMoments():
@@ -18,8 +66,8 @@ def findFuelMoments():
     ... MomF [Type]         Interpolant of the fuel moment as a function of fuel mass
     '''
 
-    dfm = pd.read_excel('FuelData/FuelMoments.xlsx',usecols='A')
-
+    dfm = pd.read_csv('FuelData/FuelMoments.csv',header=None)
+    dfm = np.squeeze(dfm)
     masslst = np.arange(100,5000,100)
     masslst = np.append(masslst,5008)
     
@@ -27,16 +75,15 @@ def findFuelMoments():
     masslst = masslst*0.45359
     
     dfm = np.array(dfm)
-    
-    momentlst = np.append(298.16,dfm)
+
     
     #Convert to SI
-    momentlst = momentlst*(0.45359*0.0254)*100
+    momentlst = dfm*(0.45359*0.0254)*100
     
-    MomF = sc.interpolate.interp1d(masslst,momentlst)
+    MomF = interp.interp1d(masslst,momentlst)
     
     return MomF
-   
+
 
 def calcWeightCG(inputFile, dataSet):
     '''
@@ -50,7 +97,8 @@ def calcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = weightOld(inputFile)
+    pay = imPar.parametersWeight(inputFile)
+
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
@@ -58,7 +106,7 @@ def calcWeightCG(inputFile, dataSet):
     if dataSet == 'dynamic':
         MeasData = dynamicMeas(inputFile,SI=True)
     elif dataSet in ['static1','static2a','static2b']:
-        MeasData = import_static.staticMeas(inputFile, dataSet)
+        MeasData = staticMeas(inputFile, dataSet)
     else:
         raise ValueError("invalid input for 'dataSet'; choose between 'static1', 'static2a', 'static2b' or 'dynamic'")
 
@@ -123,12 +171,12 @@ def calcWeightCG(inputFile, dataSet):
 
     if dataSet == 'dynamic':
         MassBal['time'] = MeasData['time']
+        MassBalDf = pd.DataFrame(data=MassBal)
+        MassBalDf.to_csv('weightData/'+inputFile+'.csv',index=False)
 
-    MassBal = pd.DataFrame(data=MassBal)
+    MassBalDf = pd.DataFrame(data=MassBal)
     
-    return MassBal
-
-
+    return MassBalDf
 
 
 
@@ -137,5 +185,6 @@ def calcWeightCG(inputFile, dataSet):
 # MassBal2a = calcWeightCG('reference','static2a')
 # MassBal2b = calcWeightCG('reference','static2b')
 # MassBalDyn = calcWeightCG('reference','dynamic')
+MassBalDynAct = calcWeightCG('actual','dynamic')
 
 # print(MassBal2a)
