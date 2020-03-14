@@ -5,9 +5,9 @@ import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
-import import_static
-import import_dynamic
-import import_weight
+
+import import_dynamic as imDyn
+import import_weight as imWeight
 
 #global constants
 g = 9.81
@@ -137,7 +137,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     stateSpaceA = ml.ss(Aa,Ba,Ca,Da)
 
     # get data from the dynamic measurement file
-    dfTime = import_dynamic.sliceTime(fileName,t0,duration,SI)
+    dfTime = imDyn.sliceTime(fileName,t0,duration,SI)
     time = dfTime['time']
     delta_a = dfTime['delta_a'].to_numpy()
     delta_e = dfTime['delta_e'].to_numpy()
@@ -198,7 +198,7 @@ def calcStepResponse(t0, duration, fileName, StateSpace, param, SI=True):
     stateSpaceA = ml.ss(Aa, Ba, Ca, Da)
 
     # get data from the dynamic measurement file
-    dfTime = import_dynamic.sliceTime(fileName, t0, duration, SI)
+    dfTime = imDyn.sliceTime(fileName, t0, duration, SI)
     time = dfTime['time']
 
     # input variables
@@ -298,7 +298,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
     tS, XoutS, YoutS, tA, XoutA, YoutA = calcResponse(t0,duration,fileName,StateSpace,param,SI)
 
     # get data from dynamic file
-    dfTime = import_dynamic.sliceTime(fileName,t0,duration,SI)
+    dfTime = imDyn.sliceTime(fileName,t0,duration,SI)
     time = dfTime['time'].to_numpy()
 
     if motionName=='phugoid' or motionName=='short period':
@@ -450,89 +450,6 @@ class DynamicTime:
             self.tSpiral = 0
 
 
-class weightOld:
-    def __init__(self, inputFile):
-
-        if inputFile == 'reference':
-
-            self.mpilot1 = 95                   # [kg]
-            self.mpilot2 = 92                   # [kg]
-            self.mcoordinator = 74              # [kg]
-            self.mobserver1L = 66               # [kg]
-            self.mobserver1R = 61               # [kg]
-            self.mobserver2L = 75               # [kg]
-            self.mobserver2R = 78               # [kg]
-            self.mobserver3L = 86               # [kg]
-            self.mobserver3R = 68               # [kg]
-
-            self.mblockfuel = 4050*0.45359237   # [kg]
-
-            self.position1 = 288
-            self.position2 = 134
-
-            self.locSwitch = 7                  #Initial Seat Location of the person who switched
-            self.MBem = 9165*0.45359
-            self.MomBem = 2672953.5*0.45359*0.0254
-
-        if inputFile == 'actual':
-            # **** Change these values to the correct ones *****
-            self.mpilot1 = 95                   # [kg]
-            self.mpilot2 = 92                   # [kg]
-            self.mcoordinator = 74              # [kg]
-            self.mobserver1L = 66               # [kg]
-            self.mobserver1R = 61               # [kg]
-            self.mobserver2L = 75               # [kg]
-            self.mobserver2R = 78               # [kg]
-            self.mobserver3L = 86               # [kg]
-            self.mobserver3R = 68               # [kg]
-
-            self.mblockfuel = 4050*0.45359237   # [kg]
-
-            self.position1 = 288
-            self.position2 = 134
-
-            self.locSwitch = 7                  #Initial Seat Location of the person who switched
-            self.MBem = 9165*0.45359
-            self.MomBem = 2672953.5*0.45359*0.0254
-
-
-class ParametersStatic:
-    def __init__(self):
-
-        # Standard values
-        self.Ws = 60500 # Standard weight [N]
-        self.ms = 0.048 # Standard mass flow [kg/s]
-
-        # Aircraft geometry
-        self.S = 30.00  # wing area [m^2]
-        self.Sh = 0.2 * self.S  # stabiliser area [m^2]
-        self.Sh_S = self.Sh / self.S  # [ ]
-        self.lh = 0.71 * 5.968  # tail length [m]
-        self.c = 2.0569  # mean aerodynamic cord [m]
-        self.lh_c = self.lh / self.c  # [ ]
-        self.b = 15.911  # wing span [m]
-        self.bh = 5.791  # stabilser span [m]
-        self.A = self.b ** 2 / self.S  # wing aspect ratio [ ]
-        self.Ah = self.bh ** 2 / self.Sh  # stabilser aspect ratio [ ]
-        self.Vh_V = 1  # [ ]self.
-        self.ih = -2 * pi / 180  # stabiliser angle of incidence [rad]
-        self.xcg = 0.25 * self.c
-        self.d = 0.69 # fan diameter engine [m]
-
-        # Constant values concerning atmosphere and gravity
-        self.rho0 = 1.2250  # air density at sea level [kg/m^3]
-        self.lamb = -0.0065  # temperature gradient in ISA [K/m]
-        self.Temp0  = 288.15  # temperature at sea level in ISA [K]
-        self.pres0 = 101325 # pressure at sea level in ISA [pa]
-        self.R      = 287.05  # specific gas constant [m^2/sec^2K]
-        self.g      = 9.81  # [m/sec^2] (gravity constant)
-        self.gamma = 1.4 # 
-
-        # Stability derivatives
-        self.CmTc = -0.0064
-
-
-
 class ParametersOld:
     '''
         DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
@@ -547,11 +464,11 @@ class ParametersOld:
         '''
 
     #initial unimproved parameters from appendix C
-    def __init__(self, fileName ,t0=3000,SI=True):
+    def __init__(self, fileName ,t0 ,SI=True):
         if SI==True:
-            df = import_dynamic.sliceTime(fileName,t0,1,SI) # duration is set to 1 second but first element is always taken anyway
+            df = imDyn.sliceTime(fileName,t0,1,SI) # duration is set to 1 second but first element is always taken anyway
         elif SI==False:
-            df = import_dynamic.sliceTime(fileName, t0, 1,SI)  # duration is set to 1 second but first element is always taken anyway
+            df = imDyn.sliceTime(fileName, t0, 1,SI)  # duration is set to 1 second but first element is always taken anyway
         else:
             raise ValueError("Enter SI = True or SI = False")
 
@@ -562,16 +479,12 @@ class ParametersOld:
         self.alpha0 = df['vane_AOA'].to_numpy()[0] # angle of attack in the stationary flight condition [rad]
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
-        dfMass = import_weight.calcWeightCG(fileName,'dynamic')
+        dfMass = imWeight.calcWeightCG(fileName,'dynamic')
         dfMassSliced = dfMass.loc[(dfMass['time'] == self.t0actual)]
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
         print(self.m)
         ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
-
-        # Standard values
-        self.Ws = 60500 # Standard weight [N]
-        self.ms = 0.048 # Standard mass flow [kg/s]
 
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]

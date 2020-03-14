@@ -104,6 +104,7 @@ def sliceTime(fileName,t0,duration,SI=True):
         raise ValueError("Enter SI = True or SI = False")
     return dfTime
 
+
 def dynamicMeas(fileName,SI=True):
     if SI==True:
         df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')

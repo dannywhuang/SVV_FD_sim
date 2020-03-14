@@ -1,12 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
-from numpy import sqrt
 
-# from main import ParametersStatic
-# from import_weight import calcWeightCG
-import main 
-import import_weight
+import import_parameters as imPar 
+import import_weight as imWeight
 
 
 # To create files
@@ -127,7 +124,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-    param = main.ParametersStatic()
+    param = imPar.parametersStatic()
 
     thrustData1 = {}
     thrustData2a = {}
@@ -219,8 +216,8 @@ def staticFlightCondition(inputFile, dataSet):
 
     # Import data
     meas  = staticMeas(inputFile, dataSet, SI=True)
-    param = main.ParametersStatic()
-    staticWeight = import_weight.calcWeightCG(inputFile,dataSet)
+    param = imPar.parametersStatic()
+    staticWeight = imWeight.calcWeightCG(inputFile,dataSet)
 
     # Constant values
     pres0 = param.pres0
@@ -239,14 +236,14 @@ def staticFlightCondition(inputFile, dataSet):
 
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
-    Mach = sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
+    Mach = np.sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
     Temp = TempMeas / ( 1 + (lamb - 1)/2 * Mach**2 )
-    a = sqrt(gamma * R * Temp)
+    a = np.sqrt(gamma * R * Temp)
     Vt = Mach * a
     rho = pres / (R * Temp)
-    Ve = Vt * sqrt(rho / rho0)
+    Ve = Vt * np.sqrt(rho / rho0)
 
-    VeRed = Ve * sqrt( Ws / W )
+    VeRed = Ve * np.sqrt( Ws / W )
 
     Tisa = Temp0 + lamb * meas['hp'].to_numpy()
     DeltaTisa = Temp - Tisa
@@ -273,7 +270,7 @@ def staticThrust(inputFile, dataSet, standard=False):
     '''
 
     # Import data
-    param = main.ParametersStatic()
+    param = imPar.parametersStatic()
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
 
     # Obtain values from data
