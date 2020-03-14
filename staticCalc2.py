@@ -1,9 +1,68 @@
-import scipy as sc
+import scipy.stats as stats
 import numpy as np
+import pandas as pd
 
-from main import ParametersOld
-from import_static import staticMeas, staticThrust
-from staticCalc1 import calcAeroCoeff
+import import_parameters as imPar
+import import_static as imStat
+import import_weight as imWeight 
+
+
+def calcAeroCoeff(inputFile, dataSet):
+    '''
+    DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
+    ========
+    INPUT:\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+    ... dataSet [String]:               Name of data set; choose between 'static1', 'static2a' or 'static2b'\n
+    ... SI [Condition]:                 By default set to SI=True\n
+
+    OUTPUT:\n
+    ... aeroCoeff [Dataframe]:          Pandas dataframe containing Cl, Cd, e, Cla, Cd0, aoa0   
+    '''
+
+    # Import data
+    param            = imPar.parametersStatic()
+    static           = imStat.staticMeas(inputFile, dataSet)
+    staticNotSI      = imStat.staticMeas(inputFile, dataSet, SI=False)
+    staticFlightCond = imStat.staticFlightCondition(inputFile, dataSet)
+    staticTp         = imStat.staticThrust(inputFile, dataSet)
+    staticWeight     = imWeight.calcWeightCG(inputFile, dataSet)
+
+    # Obtain vales from data
+    S   = param.S
+    A   = param.A
+    aoa_rad = static['aoa'].to_numpy()
+    aoa_deg = staticNotSI['aoa'].to_numpy()
+    rho = staticFlightCond['rho'].to_numpy()
+    Vt  = staticFlightCond['Vt'].to_numpy()
+    W   = staticWeight['Weight'].to_numpy()
+    Tp  = staticTp['Tp'].to_numpy()
+
+    # Calculations
+    Cl = W / (0.5 * rho * Vt**2 * S)
+    Cd = Tp / (0.5 * rho * Vt**2 * S)
+    
+    aeroCoeff = {}
+
+    if dataSet == 'static1':
+        Cl_aoa = stats.linregress(aoa_deg,Cl)
+        Cd_Cl2 = stats.linregress(Cl**2,Cd)
+
+        Cla = Cl_aoa.slope
+        aoa0 = -Cl_aoa.intercept / Cla
+        e = 1/(np.pi*A*Cd_Cl2.slope)
+        Cd0 = Cd_Cl2.intercept
+
+        dataNames = ['Cl','Cd','e','Cla','Cd0','aoa0']
+        for name in dataNames:
+            aeroCoeff[name] = locals()[name]
+    else:
+        dataNames = ['Cl','Cd']
+        for name in dataNames:
+            aeroCoeff[name] = locals()[name]
+    aeroCoeff = pd.DataFrame(data=aeroCoeff)
+
+    return aeroCoeff
 
 
 def calcElevEffectiveness(inputFile):
@@ -19,9 +78,10 @@ def calcElevEffectiveness(inputFile):
     '''
 
     # Import data
-    param     = ParametersOld()
-    static2b  = staticMeas(inputFile, 'static2b', SI=True)
-    aeroCoeff = calcAeroCoeff(inputFile, 'static2b')
+    param          = imPar.parametersStatic()
+    static2b       = imStat.staticMeas(inputFile, 'static2b', SI=True)
+    aeroCoeff      = calcAeroCoeff(inputFile, 'static2b')
+    static2bWeight = imWeight.calcWeightCG(inputFile, 'static2b')
 
     # Obtain values from data
     cbar   = param.c
@@ -30,8 +90,9 @@ def calcElevEffectiveness(inputFile):
     delta2 = delta[1]
     Cn     = aeroCoeff['Cl'].to_numpy()
     CnAvg  = np.average( Cn )
-    xcg1   = 123#weight function ...
-    xcg2   = 122#weight function ...
+    xcg    = static2bWeight['Xcg'].to_numpy()
+    xcg1   = xcg[0]
+    xcg2   = xcg[1]
 
     # Calculation
     Cmdelta = -1 * ( CnAvg * (xcg2 - xcg1) / cbar ) / ( delta2 - delta1 )
@@ -52,10 +113,10 @@ def calcElevDeflection(inputFile):
     '''
 
     # Import data
-    param = ParametersOld()
-    static2a = staticMeas(inputFile, 'static2a', SI=True)
-    staticThrust2aRed = staticThrust(inputFile, 'static2a', standard=True)
-    staticThrust2a = staticThrust(inputFile, 'static2a', standard=False)
+    param             = imPar.parametersStatic()
+    static2a          = imStat.staticMeas(inputFile, 'static2a', SI=True)
+    staticThrust2aRed = imStat.staticThrust(inputFile, 'static2a', standard=True)
+    staticThrust2a    = imStat.staticThrust(inputFile, 'static2a', standard=False)
 
     # Obtain values from data
     CmTc  = param.CmTc
@@ -67,8 +128,9 @@ def calcElevDeflection(inputFile):
 
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
-    linregress = sc.stats.linregress(aoa, delta)
+    linregress = stats.linregress(aoa, delta)
     Cma = linregress.slope * - Cmdelta
+
     return deltaRed, Cma
 
 
@@ -85,14 +147,14 @@ def calcElevContrForce(inputFile):
     '''
 
     # Import data
-    param = ParametersOld()
-    static2a = staticMeas(inputFile, 'static2a',SI=True)
-    
+    param          = imPar.parametersStatic()
+    static2a       = imStat.staticMeas(inputFile, 'static2a', SI=True)
+    static2aWeight = imWeight.calcWeightCG(inputFile, 'static2a')
 
     # Obtain values from data
     Ws = param.Ws
     Fe = static2a['Fe'].to_numpy()
-    W = 123#weight function ...
+    W  = static2aWeight['Weight'].to_numpy()
 
     # Calculation
     FeRed = Fe * Ws / W
