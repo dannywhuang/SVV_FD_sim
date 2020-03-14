@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import import_static
 import import_weight 
-import main
+import mainDynamic
 
 
 def calcAeroCoeff(inputFile, dataSet):
@@ -26,7 +26,7 @@ def calcAeroCoeff(inputFile, dataSet):
     '''
 
     # Import data
-    param            = main.ParametersStatic()
+    param            = mainDynamic.ParametersStatic()
     static           = import_static.staticMeas(inputFile, dataSet)
     staticNotSI      = import_static.staticMeas(inputFile, dataSet, SI=False)
     staticFlightCond = import_static.staticFlightCondition(inputFile, dataSet)

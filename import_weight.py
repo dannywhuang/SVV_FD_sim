@@ -6,7 +6,7 @@ import scipy as sc
 # from main import weightOld
 import import_dynamic
 import import_static
-import main
+import mainDynamic
 
 
 def findFuelMoments():
@@ -52,7 +52,7 @@ def calcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = main.weightOld(inputFile)
+    pay = mainDynamic.weightOld(inputFile)
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
