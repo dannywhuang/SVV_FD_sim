@@ -1,11 +1,11 @@
 import numpy as np
-import scipy as sc
+import scipy.stats as stat
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from main import ParametersOld
-from import_static import staticMeas, staticFlightCondition, staticThrust
-from import_weight import calcWeightCG
+import import_parameters as imPar
+import import_static as imStat
+import import_weight as imWeight
 
 
 def calcAeroCoeff(inputFile, dataSet):
@@ -22,12 +22,13 @@ def calcAeroCoeff(inputFile, dataSet):
     '''
 
     # Import data
-    param            = ParametersOld()
-    static           = staticMeas(inputFile, dataSet)
-    staticNotSI      = staticMeas(inputFile, dataSet, SI=False)
-    staticFlightCond = staticFlightCondition(inputFile, dataSet)
-    staticTp         = staticThrust(inputFile, dataSet)
-    staticWeight     = calcWeightCG(inputFile, dataSet)
+
+    param            = imPar.parametersStatic()
+    static           = imStat.staticMeas(inputFile, dataSet)
+    staticNotSI      = imStat.staticMeas(inputFile, dataSet, SI=False)
+    staticFlightCond = imStat.staticFlightCondition(inputFile, dataSet)
+    staticTp         = imStat.staticThrust(inputFile, dataSet)
+    staticWeight     = imWeight.calcWeightCG(inputFile, dataSet)
 
     # Obtain vales from data
     S   = param.S
@@ -46,8 +47,8 @@ def calcAeroCoeff(inputFile, dataSet):
     aeroCoeff = {}
 
     if dataSet == 'static1':
-        Cl_aoa = sc.stats.linregress(aoa_deg,Cl)
-        Cd_Cl2 = sc.stats.linregress(Cl**2,Cd)
+        Cl_aoa = stat.linregress(aoa_deg,Cl)
+        Cd_Cl2 = stat.linregress(Cl**2,Cd)
 
         Cla = Cl_aoa.slope
         aoa0 = -Cl_aoa.intercept / Cla
@@ -76,13 +77,12 @@ def plotPolar(inputFile):
     OUTPUT:\n
     '''
 
-    static1 = staticMeas(inputFile,'static1')
+    static1 = imStat.staticMeas(inputFile,'static1')
     aeroCoeff = calcAeroCoeff(inputFile,'static1')
 
     aoa = static1['aoa'].to_numpy()
     Cl = aeroCoeff['Cl'].to_numpy()
     Cd = aeroCoeff['Cd'].to_numpy()
-    
     return
 
 

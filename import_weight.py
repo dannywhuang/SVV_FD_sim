@@ -1,10 +1,40 @@
 import numpy as np
 import pandas as pd
-import scipy as sc 
+import scipy.interpolate as interp
+ 
+import import_parameters as imPar
 
-import import_static
-import import_dynamic
-import main
+
+def staticMeas(inputFile, dataSet, SI=True):
+    '''
+    DESCRIPTION:    Get data from .csv file
+    ========
+    INPUT:\n
+    ... inputFile [String]:         Name of the excel file (e.g. 'reference' or 'actual' )\n
+    ... dataSet [String]:           Name of data file (e.g. 'static1', 'static2a' or 'static2b'\n
+    ... SI [Condition]:             By default set to SI=True\n
+
+    OUTPUT:\n
+    ... df [Dataframe]:             Pandas dataframe containing data
+    '''
+
+    if SI == True:
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'_SI.csv')
+    elif SI == False:
+        df = pd.read_csv('staticData/CSV_'+inputFile+'/'+dataSet+'.csv')
+    else:
+        raise ValueError("Incorrect SI input; set it either to '=False', '=True' or leave it empty")
+    return df
+
+
+def dynamicMeas(fileName,SI=True):
+    if SI==True:
+        df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')
+    elif SI==False:
+        df = pd.read_csv('dynamicData/' + fileName + '.csv')
+    else:
+        raise ValueError("Enter SI = True or SI = False")
+    return df
 
 
 def findFuelMoments():
@@ -33,7 +63,7 @@ def findFuelMoments():
     #Convert to SI
     momentlst = momentlst*(0.45359*0.0254)*100
     
-    MomF = sc.interpolate.interp1d(masslst,momentlst)
+    MomF = interp.interp1d(masslst,momentlst)
     
     return MomF
    
@@ -50,15 +80,16 @@ def calcWeightCG(inputFile, dataSet):
     ... MassBal [Dataframe]:        Pandas dataframe containing the weight and xcg
     '''
     
-    pay = main.weightOld()
+    pay = imPar.parametersWeight(inputFile)
+
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
 
     if dataSet == 'dynamic':
-        MeasData = import_dynamic.dynamicMeas(inputFile,SI=True)
+        MeasData = dynamicMeas(inputFile,SI=True)
     elif dataSet in ['static1','static2a','static2b']:
-        MeasData = import_static.staticMeas(inputFile, dataSet)
+        MeasData = staticMeas(inputFile, dataSet)
     else:
         raise ValueError("invalid input for 'dataSet'; choose between 'static1', 'static2a', 'static2b' or 'dynamic'")
 
