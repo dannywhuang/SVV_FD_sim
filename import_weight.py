@@ -81,6 +81,7 @@ def calcWeightCG(inputFile, dataSet):
     '''
     
     pay = imPar.parametersWeight(inputFile)
+
     MBlockFuel = pay.mblockfuel
     MBem = pay.MBem
     MomBem = pay.MomBem
