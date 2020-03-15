@@ -55,12 +55,14 @@ class parametersWeight:
             self.position1 = 288
             self.position2 = 134
 
-            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.locSwitch = 7                  # Initial Seat Location of the person who switched
             self.MBem = 9165*0.45359
             self.MomBem = 2672953.5*0.45359*0.0254
 
         if inputFile == 'actual':
             # **** Change these values to the correct ones *****
+            print("The constant weight parameters for the actual measurement still have to be changed")
+
             self.mpilot1 = 95                   # [kg]
             self.mpilot2 = 92                   # [kg]
             self.mcoordinator = 74              # [kg]
@@ -76,7 +78,7 @@ class parametersWeight:
             self.position1 = 288
             self.position2 = 134
 
-            self.locSwitch = 7                  #Initial Seat Location of the person who switched
+            self.locSwitch = 7                  # Initial Seat Location of the person who switched
             self.MBem = 9165*0.45359
             self.MomBem = 2672953.5*0.45359*0.0254
 

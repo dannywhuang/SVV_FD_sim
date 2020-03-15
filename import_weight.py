@@ -180,11 +180,18 @@ def calcWeightCG(inputFile, dataSet):
 
 
 
-''' Delete this part once understood: to see how functions work '''
-# MassBal1 = calcWeightCG('reference','static1')
-# MassBal2a = calcWeightCG('reference','static2a')
-# MassBal2b = calcWeightCG('reference','static2b')
-# MassBalDyn = calcWeightCG('reference','dynamic')
-MassBalDynAct = calcWeightCG('actual','dynamic')
+''' Run these lines to test if all functions work properly without any coding errors '''
 
+# inputFile = 'reference'
+
+# MassBal1 = calcWeightCG(inputFile,'static1')
+# MassBal2a = calcWeightCG(inputFile,'static2a')
+# MassBal2b = calcWeightCG(inputFile,'static2b')
+# MassBalDyn = calcWeightCG(inputFile,'dynamic')
+# MassBalDynAct = calcWeightCG('actual','dynamic')
+
+# print(MassBal1)
 # print(MassBal2a)
+# print(MassBal2b)
+# print(MassBalDyn)
+

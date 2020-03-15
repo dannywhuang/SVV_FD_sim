@@ -34,7 +34,7 @@ def main():
     # Stability plots
     print("\n ============ Stability Plots ============")
     # ....
-
+    return
 
 
 if __name__ == "__main__":

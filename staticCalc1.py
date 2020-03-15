@@ -57,7 +57,8 @@ def calcAeroCoeff(inputFile, dataSet):
 
         dataNames = ['Cl','Cd','e','Cla','Cd0','aoa0']
         for name in dataNames:
-            aeroCoeff[name] = locals()[name]
+            aeroCoeff[name] = locals()[name]  
+
     else:
         dataNames = ['Cl','Cd']
         for name in dataNames:
@@ -86,17 +87,21 @@ def plotPolar(inputFile):
     return
 
 
-''' Delete this part once understood: to see how the functions work '''
-# Cl1  = calcAeroCoeff('reference', 'static1')['Cl'].to_numpy()
-# Cl2a = calcAeroCoeff('reference', 'static2a')['Cl'].to_numpy()
-# Cl2b = calcAeroCoeff('reference', 'static2b')['Cl'].to_numpy()
-# Cd1  = calcAeroCoeff('reference', 'static1')['Cd'].to_numpy()
-# Cd2a = calcAeroCoeff('reference', 'static2a')['Cd'].to_numpy()
-# Cd2b = calcAeroCoeff('reference', 'static2b')['Cd'].to_numpy()
 
-# print(Cl1)
-# print(Cl2a)
-# print(Cl2b)
-# print(Cd1)
-# print(Cd2a)
-# print(Cd2b)
+
+
+
+
+
+
+''' Run these lines to test if all functions work properly without any coding errors '''
+
+# inputFile = 'reference'
+
+# aeroCeoff1 = calcAeroCoeff(inputFile, 'static1')
+# aeroCoeff2a = calcAeroCoeff(inputFile, 'static2a')
+# aeroCoeff2b = calcAeroCoeff(inputFile, 'static2b')
+
+# print(aeroCeoff1)
+# print(aeroCoeff2a)
+# print(aeroCoeff2b)
