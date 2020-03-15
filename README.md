@@ -10,16 +10,16 @@ Required libraries are:
 - control
 
 ## Functions to be finished
-- calcWeightCG() **Done**
+- calcWeightCG() **Done / Need to be checked for actual data**
 - calcThrust() **Done**
 - **not used** calcLiftCoeff() **put in calcAeroCoeff()**
 - **not used** calcDragCoeff() **put in calcAeroCoeff()**
-- calcAeroCoeff() **Weight, e, Cma, Cd0 and aoa0 to be added**
-- calcElevEffectiveness() **Done Weight to be added**
-- calcElevDeflection() **Done Weight to be added**
+- calcAeroCoeff() **Done / Need to be checked for actual data**
+- calcElevEffectiveness() **Done / Need to be checked for actual data**
+- calcElevDeflection() **Done / Need to be checked for actual data**
 - **not used** calcV() **put in staticFlightCondition()**
-- **new** staticFlightCondition() **Done Weight to be added**
-- calcElevContrForce() **Done Weight to be added**
+- **new** staticFlightCondition() **Done / Need to be checked for actual data**
+- calcElevContrForce() **Done / Need to be checked for actual data**
 - calcEigenTest()
 - calcEigenState() **put in spaceState**
 - stateSpace() **Done** 
