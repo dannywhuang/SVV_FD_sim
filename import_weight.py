@@ -81,7 +81,6 @@ def findFuelMoments():
     momentlst = dfm*(0.45359*0.0254)*100
     
     MomF = interp.interp1d(masslst,momentlst)
-    
     return MomF
 
 
@@ -177,6 +176,7 @@ def calcWeightCG(inputFile, dataSet):
     MassBalDf = pd.DataFrame(data=MassBal)
     
     return MassBalDf
+
 
 
 
