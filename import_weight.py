@@ -177,6 +177,9 @@ def calcWeightCG(inputFile, dataSet):
     
     return MassBalDf
 
+def weightMeas(fileName):
+    df = pd.read_csv('weightData/' + fileName + '.csv')
+    return df
 
 
 ''' Delete this part once understood: to see how functions work '''
