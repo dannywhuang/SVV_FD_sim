@@ -11,7 +11,7 @@ Required libraries are:
 
 ## Functions to be finished
 - calcWeightCG() **Done / Need to be checked for actual data**
-- calcThrust() **Done**
+- calcThrust() **Done / Need to be checked for actual data**
 - **not used** calcLiftCoeff() **put in calcAeroCoeff()**
 - **not used** calcDragCoeff() **put in calcAeroCoeff()**
 - calcAeroCoeff() **Done / Need to be checked for actual data**
