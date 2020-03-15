@@ -81,7 +81,6 @@ def findFuelMoments():
     momentlst = dfm*(0.45359*0.0254)*100
     
     MomF = interp.interp1d(masslst,momentlst)
-    
     return MomF
 
 
@@ -185,6 +184,6 @@ def calcWeightCG(inputFile, dataSet):
 # MassBal2a = calcWeightCG('reference','static2a')
 # MassBal2b = calcWeightCG('reference','static2b')
 # MassBalDyn = calcWeightCG('reference','dynamic')
-MassBalDynAct = calcWeightCG('actual','dynamic')
+# MassBalDynAct = calcWeightCG('actual','dynamic')
 
 # print(MassBal2a)
