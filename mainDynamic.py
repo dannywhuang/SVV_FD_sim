@@ -662,10 +662,10 @@ def main():
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    # plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
-    # plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
-    # plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
-    # plotMotionsTest(paramAperRoll, 'reference', tRef.tAperRoll, 18, ssAperRoll, 'aper roll', plotNumerical=True,SI=True)
+    plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
+    plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
+    plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
+    plotMotionsTest(paramAperRoll, 'reference', tRef.tAperRoll, 18, ssAperRoll, 'aper roll', plotNumerical=True,SI=True)
     plotMotionsTest(paramSpiral, 'reference', tRef.tSpiral, 18, ssSpiral, 'spiral', plotNumerical=True,SI=True)
 
 
