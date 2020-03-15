@@ -124,7 +124,9 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
+
     param = imPar.parametersStatic()
+
 
     thrustData1 = {}
     thrustData2a = {}
@@ -216,6 +218,7 @@ def staticFlightCondition(inputFile, dataSet):
 
     # Import data
     meas  = staticMeas(inputFile, dataSet, SI=True)
+
     param = imPar.parametersStatic()
     staticWeight = imWeight.calcWeightCG(inputFile,dataSet)
 
@@ -271,6 +274,7 @@ def staticThrust(inputFile, dataSet, standard=False):
 
     # Import data
     param = imPar.parametersStatic()
+
     staticFlightCond = staticFlightCondition(inputFile, dataSet)
 
     # Obtain values from data

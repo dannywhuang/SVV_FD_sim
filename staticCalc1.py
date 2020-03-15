@@ -22,6 +22,7 @@ def calcAeroCoeff(inputFile, dataSet):
     '''
 
     # Import data
+
     param            = imPar.parametersStatic()
     static           = imStat.staticMeas(inputFile, dataSet)
     staticNotSI      = imStat.staticMeas(inputFile, dataSet, SI=False)

@@ -28,15 +28,16 @@ def sampleFunction(param):
     return s
 
 
-def calcEigenShortPeriod(param):        #Verified
+
+def calcEigenShortPeriod(param):        #Verified by Danny
     '''
-    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    DESCRIPTION:    Calculate eigenvalues of state space matrix for short period
     ========
     INPUT:\n
     ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
     OUTPUT:\n
-    ... lambda [Array]:            Array with eigen values for analytical model short period motion
+    ... lambdac [Array]:            Array with eigen values for analytical model short period motion
     '''
     # Short period
     A = 2*param.muc*param.KY2*(2*param.muc-param.CZadot)
@@ -48,16 +49,18 @@ def calcEigenShortPeriod(param):        #Verified
     return lambdac
 
 
-def calcEigenPhugoid(param):
+def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot different from state space eigenvalues
     '''
-    DESCRIPTION:    Calculate eigenvalues of state space matrix
+    DESCRIPTION:    Calculate eigenvalues of state space matrix for phugoid
     ========
     INPUT:\n
     ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
     OUTPUT:\n
-    ... lambda [Array]:            Array with eigen values for analytical model phugoid motion
+    ... lambdac [Array]:            Array with eigen values for analytical model phugoid motion\n
+    ... lambdacSimp [Array]:        Array with eigen values for simplified anayltical model phugoid motion
     '''
+
     # Phugoid
     A = 2*param.muc*(param.CZa*param.Cmq-2*param.muc*param.Cma)
     B = 2*param.muc*(param.CXu*param.Cma - param.Cmu*param.CXa) + param.Cmq*(param.CZu *param.CXa - param.CXu*param.CZa)
@@ -70,39 +73,68 @@ def calcEigenPhugoid(param):
     B2 = 2*param.muc*param.CXu
     C2 = -param.CZu*param.CZ0
     p2 = [A2,B2,C2]
-    lambdac2 = np.roots(p2)
+    lambdacSimp = np.roots(p2)
 
-    return lambdac, lambdac2
+    return lambdac, lambdacSimp
 
 
-def chareq_as(param):
-    p = param
+def calcEigenDutchRoll(param): # Verified by Danny
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix for dutch roll
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
-    # dutch roll
-    A = 8*p.mub**2*p.KZ2
-    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
-    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
-    ev_dr = np.roots([A, B, C])
+    OUTPUT:\n
+    ... lambdac [Array]:            Array with eigen values for analytical model dutch roll motion\n
+    ... lambdacSimp [Array]:        Array with eigen values for simplified anayltical model dutch roll motion
+    '''
+    A = 8*param.mub**2*param.KZ2
+    B = -2*param.mub*(param.Cnr + 2*param.KZ2*param.CYb)
+    C = 4*param.mub*param.Cnb + param.CYb*param.Cnr
+    lambdac = np.roots([A, B, C])
 
-    # dutch roll further simplification
-    As = -2*p.mub*p.KZ2
-    Bs = 0.5*p.Cnr
-    Cs = -p.Cnb
-    ev_drs = np.roots([As, Bs, Cs])
+    # Simplified Dutch Roll
+    A2 = -2*param.mub*param.KZ2
+    B2 = 0.5*param.Cnr
+    C2 = -param.Cnb
+    lambdacSimp = np.roots([A2, B2, C2])
 
-    #  heavily damped aperiodic roll
-    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
+    return lambdac, lambdacSimp
 
-    # spiral
-    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
 
-    # dutch roll and aperiodic roll
+def calcEigenAperRoll(param):   # Verified by Danny
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix for short period
+    ========
+    INPUT:\n
+    ... param [Class]:              Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
-    A3 = 4*p.mub*(p.KX2*p.KZ2-p.KXZ**2)
-    B3 = -p.mub*((p.Clr+p.Cnp)*p.KXZ + p.Cnr*p.KX2 + p.Clp*p.KZ2)
-    C3 = 2*p.mub*(p.Clb*p.KXZ + p.Cnb*p.KX2) + 0.25*(p.Clp*p.Cnr-p.Cnp*p.Clr)
-    D3 = 0.5*(p.Clb*p.Cnp-p.Cnb*p.Clp)
-    ev3 = np.roots([A3, B3, C3, D3])
+    OUTPUT:\n
+    ... lambdac [Value]:            Eigenvalue for analytical model short period motion
+    '''
+
+    # Aperiodic Roll
+    lambdac = param.Clp/(4*param.mub*param.KX2)
+
+    return lambdac
+
+
+def calcEigenSpiral(param): # Verified by Danny
+    '''
+    DESCRIPTION:    Calculate eigenvalues of state space matrix for spiral
+    ========
+    INPUT:\n
+    ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
+
+    OUTPUT:\n
+    ... lambdac [Array]:            Array with eigen values for analytical model spiral motion
+    '''
+
+    # Spiral
+    lambdac = ((2*param.CL*(param.Clb*param.Cnr-param.Cnb*param.Clr))/(param.Clp*(param.CYb*param.Cnr+4*param.mub*param.Cnb)-param.Cnp*(param.CYb*param.Clr+4*param.mub*param.Clb)))
+
+    return lambdac
 
 
 def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
@@ -151,7 +183,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     a_stab0 = dfTime['vane_AOA'].to_numpy()[0] - a0
 
     theta0 = a0 - dfTime['Ahrs1_Pitch'].to_numpy()[0]
-    theta_stab0 = dfTime['Ahrs1_Pitch'].to_numpy()-theta0
+    theta_stab0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]-theta0
     q0 = dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*(param.c/param.V0)
 
 
@@ -370,7 +402,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
 
         plt.show()
 
-    elif motionName=='dutch roll':
+    elif motionName=='dutch roll' or motionName=='spiral' or motionName =='aper roll':
 
         # get all variables
         p = dfTime['Ahrs1_bRollRate'].to_numpy()
@@ -381,11 +413,11 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
 
         # plot q and r
-        axs[0].plot(time, -p,label="Flight data" if plotNumerical==True else None)
+        axs[0].plot(time, p,label="Flight data" if plotNumerical==True else None)
         axs[0].set_ylabel(r'$p$ [rad/s]', fontsize=12.0)
         axs[0].grid()
 
-        axs[1].plot(time, -r,label="Flight data" if plotNumerical==True else None)
+        axs[1].plot(time, r,label="Flight data" if plotNumerical==True else None)
         axs[1].set_ylabel(r'$r$ [rad/s]', fontsize=12.0)
         axs[1].grid()
 
@@ -434,7 +466,7 @@ class StateSpace:
 class DynamicTime:
     def __init__(self,fileName):
         if fileName =='reference':
-            self.tPhugoid = 3237         #offset to get stationary conditions
+            self.tPhugoid = 3237   -25      #offset to get stationary conditions
             self.tShortPeriod = 3635     #offset to get stationary conditions
             self.tDutchRoll = 3717
             self.tDutchRollYD = 3767
@@ -479,12 +511,11 @@ class ParametersOld:
         self.alpha0 = df['vane_AOA'].to_numpy()[0] # angle of attack in the stationary flight condition [rad]
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
+
         dfMass = imWeight.calcWeightCG(fileName,'dynamic')
         dfMassSliced = dfMass.loc[(dfMass['time'] == self.t0actual)]
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
-        print(self.m)
-        ### CHANGE ABOVE VALUES (123) TO VALUES FROM DYNAMIC MEASUREMENTS
 
         # aerodynamic properties
         self.e = 0.8 # Oswald factor [ ]
@@ -581,105 +612,60 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
-
-
-def Dutchroll(t):
-    '''
-        param t: eigenmotion time
-        return: eigenvalues dutch roll and ss eigenvalue for specific motion
-    '''
-    p = ParametersOld(fileName='reference',t0=t)
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
-    eigv = np.linalg.eig(Aa)[0]
-    # dutch roll
-    A = 8*p.mub**2*p.KZ2
-    B = -2*p.mub*(p.Cnr + 2*p.KZ2*p.CYb)
-    C = 4*p.mub*p.Cnb + p.CYb*p.Cnr
-    ev_dr = np.roots([A, B, C])
-    return ev_dr, eigv[1:3]*p.b/p.V0
-
-
-def Dutchroll_simp(t):
-    '''
-        param t: eigenmotion time
-        return: eigenvalues dutch roll and ss eigenvalue for specific motion
-    '''
-
-    p = ParametersOld(fileName='reference', t0=t)
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
-    eigv = np.linalg.eig(Aa)[0]
-    As = -2*p.mub*p.KZ2
-    Bs = 0.5*p.Cnr
-    Cs = -p.Cnb
-    ev_drs = np.roots([As, Bs, Cs])
-    return ev_drs, eigv[1:3]*p.b/p.V0
-
-def Aperiodic_roll(t):
-    '''
-        param t: eigenmotion time
-        return: eigenvalues Aperiodic roll and ss eigenvalue for specific motion
-    '''
-    p = ParametersOld(fileName='reference', t0=t)
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
-    eigv = np.linalg.eig(Aa)[0]
-    evdamped_ap = p.Clp/(4*p.mub*p.KX2)
-    return evdamped_ap, eigv[0]*p.b/p.V0
-
-
-def Spiral(t):
-    '''
-        param t: eigenmotion time
-        return: eigenvalues spiral and ss eigenvalue for specific motion
-    '''
-    p = ParametersOld(fileName='reference', t0=t)
-    As, Bs, Cs, Ds, Aa, Ba, Ca, Da = stateSpace(p)
-    eigv = np.linalg.eig(Aa)[0]
-    ev_spiral = ((2*p.CL*(p.Clb*p.Cnr-p.Cnb*p.Clr))/(p.Clp*(p.CYb*p.Cnr+4*p.mub*p.Cnb)-p.Cnp*(p.CYb*p.Clr+4*p.mub*p.Clb)))
-    return ev_spiral, eigv[3]*p.b/p.V0
   
         
 def main():
     tRef = DynamicTime(fileName='reference')
     paramPhugoid = ParametersOld(fileName='reference',t0=tRef.tPhugoid,SI=True) #Create parameters for phugoid motion
     paramShortPeriod = ParametersOld(fileName='reference',t0=tRef.tShortPeriod,SI=True)
-    paramDutchRoll = ParametersOld(fileName='reference',t0=tRef.tDutchRoll)
-    #paramDutchRollYD = ParametersOld(fileName='reference', t0=tRef.tDutchRollYD)
-    #paramAperRoll = ParametersOld(fileName='reference', t0=tRef.tAperRoll)
-    #paramSpiral = ParametersOld(fileName='reference', t0=tRef.tSpiral)
+    paramDutchRoll = ParametersOld(fileName='reference',t0=tRef.tDutchRoll,SI=True)
+    paramDutchRollYD = ParametersOld(fileName='reference', t0=tRef.tDutchRollYD,SI=True)
+    paramAperRoll = ParametersOld(fileName='reference', t0=tRef.tAperRoll,SI=True)
+    paramSpiral = ParametersOld(fileName='reference', t0=tRef.tSpiral,SI=True)
 
     ssPhugoid = stateSpace(paramPhugoid)
     ssShortPeriod = stateSpace(paramShortPeriod)
     ssDutchRoll = stateSpace(paramDutchRoll)
-    # ssDutchRollYD = stateSpace(paramDutchRollYD)
-    # ssAperRoll = stateSpace(paramAperRoll)
-    # ssSpiral = stateSpace(paramSpiral)
+    ssDutchRollYD = stateSpace(paramDutchRollYD)
+    ssAperRoll = stateSpace(paramAperRoll)
+    ssSpiral = stateSpace(paramSpiral)
 
-    eigPhugoid,eigPhugoidSimplified = calcEigenPhugoid(paramPhugoid)
+    eigPhugoid,eigPhugoidSimp = calcEigenPhugoid(paramPhugoid)
     eigShortPeriod = calcEigenShortPeriod(paramShortPeriod)
+    eigDutchRoll,eigDutchRollSimp = calcEigenDutchRoll(paramDutchRoll)
+    eigDutchRollYD, eigDutchRollYDSimp = calcEigenDutchRoll(paramDutchRoll)
+    eigAperRoll = calcEigenAperRoll(paramAperRoll)
+    eigSpiral = calcEigenSpiral(paramSpiral)
 
-    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs)
+    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2:])
     print("eigenvalues analytical Phugoid:",eigPhugoid)
-    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimplified)
+    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
 
-    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs)
-    print("eigenvalues analytical Short Period:", eigShortPeriod)
+    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
+    print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
 
-    ev_dr, ss_d = Dutchroll(tDutchRoll)
-    ev_drs, ss_ds = Dutchroll_simp(tDutchRoll)
-    evdamped_ap, ss_ap = Aperiodic_roll(tAperRoll)
-    ev_spiral, ss_sp = Spiral(tSpiral)
+    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
+    print("eigenvalues analytical dutch roll:", eigDutchRoll)
+    print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
 
-    print("eigenvalues dutch roll char eq:",ev_dr,"ss-->",ss_d)
-    print("eigenvalues dutch role simplified char eq:",ev_drs,"ss-->",ss_ds)
-    print("eigenvalue  damped aperiodic roll char eq:",evdamped_ap,"ss-->",ss_ap)
-    print("eigenvalue  spiral char eq:", ev_spiral,"ss-->",ss_sp)
+    print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
+    print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
+    print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp,"\n")
+
+    print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0])
+    print("eigenvalue analytical damped aperiodic roll:",eigAperRoll,"\n")
+
+    print("eigenvalue ss spiral:", ssSpiral.Eiga[3])
+    print("eigenvalue analytical spiral:" ,eigSpiral)
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
-    plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
-    plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
+    # plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
+    # plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
+    # plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
+    # plotMotionsTest(paramAperRoll, 'reference', tRef.tAperRoll, 18, ssAperRoll, 'aper roll', plotNumerical=True,SI=True)
+    # plotMotionsTest(paramSpiral, 'reference', tRef.tSpiral, 18, ssSpiral, 'spiral', plotNumerical=True,SI=True)
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
