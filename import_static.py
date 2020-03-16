@@ -124,9 +124,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-
     param = imPar.parametersStatic()
-
 
     thrustData1 = {}
     thrustData2a = {}
@@ -138,21 +136,21 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     for name in dataNames:
         if name in ['hp','FFl','FFr']:
             if standard == True and name in ['FFl','FFr']:
-                len1   = np.size(staticMeas('reference', 'static1', SI)[name].to_numpy())
+                len1   = np.size(staticMeas(inputFile, 'static1', SI)[name].to_numpy())
                 data1  = np.ones(len1)*param.ms
-                len2a  = np.size(staticMeas('reference', 'static2a', SI)[name].to_numpy())
+                len2a  = np.size(staticMeas(inputFile, 'static2a', SI)[name].to_numpy())
                 data2a = np.ones(len2a)*param.ms
-                len2b  = np.size(staticMeas('reference', 'static2b', SI)[name].to_numpy())
+                len2b  = np.size(staticMeas(inputFile, 'static2b', SI)[name].to_numpy())
                 data2b = np.ones(len2b)*param.ms
             else:
-                data1  = staticMeas('reference', 'static1', SI)[name].to_numpy()
-                data2a = staticMeas('reference', 'static2a', SI)[name].to_numpy()
-                data2b = staticMeas('reference', 'static2b', SI)[name].to_numpy()
+                data1  = staticMeas(inputFile, 'static1', SI)[name].to_numpy()
+                data2a = staticMeas(inputFile, 'static2a', SI)[name].to_numpy()
+                data2b = staticMeas(inputFile, 'static2b', SI)[name].to_numpy()
         
         elif name in ['Mach','DeltaTisa']:
-            data1  = staticFlightCondition('reference', 'static1')[name].to_numpy()
-            data2a = staticFlightCondition('reference', 'static2a')[name].to_numpy()
-            data2b = staticFlightCondition('reference', 'static2b')[name].to_numpy()
+            data1  = staticFlightCondition(inputFile, 'static1')[name].to_numpy()
+            data2a = staticFlightCondition(inputFile, 'static2a')[name].to_numpy()
+            data2b = staticFlightCondition(inputFile, 'static2b')[name].to_numpy()
         thrustData1[name]  = data1
         thrustData2a[name] = data2a
         thrustData2b[name] = data2b

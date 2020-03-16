@@ -185,7 +185,7 @@ def weightMeas(fileName):
 
 ''' Run these lines to test if all functions work properly without any coding errors '''
 
-# inputFile = 'reference'
+# inputFile = 'actual'
 
 # MassBal1 = calcWeightCG(inputFile,'static1')
 # MassBal2a = calcWeightCG(inputFile,'static2a')
