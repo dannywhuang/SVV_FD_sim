@@ -61,19 +61,20 @@ class parametersWeight:
 
         if inputFile == 'actual':
             # **** Change these values to the correct ones *****
-            print("The constant weight parameters for the actual measurement still have to be changed")
-
-            self.mpilot1 = 95                   # [kg]
-            self.mpilot2 = 92                   # [kg]
-            self.mcoordinator = 74              # [kg]
-            self.mobserver1L = 66               # [kg]
-            self.mobserver1R = 61               # [kg]
-            self.mobserver2L = 75               # [kg]
-            self.mobserver2R = 78               # [kg]
+            
+            self.mpilot1 = 80                   # [kg]
+            self.mpilot2 = 102                  # [kg]
+            self.mcoordinator = 60              # [kg]
+            self.mobserver1L = 67               # [kg]
+            self.mobserver1R = 59               # [kg]
+            self.mobserver2L = 78               # [kg]
+            self.mobserver2R = 66               # [kg]
             self.mobserver3L = 86               # [kg]
-            self.mobserver3R = 68               # [kg]
+            self.mobserver3R = 87.5             # [kg]
 
-            self.mblockfuel = 4050*0.45359237   # [kg]
+            self.mblockfuel = 3590 * 0.45359237 # [kg]
+
+            print("De 5 waardes die onder deze print functie staan in import_parameters -> parametersWeight, snap ik niet precies. Die moeten dus nog worden aangepast voor de actual data. Nu staan er nog de waardes voor de reference data. Groetjes Frans :)")
 
             self.position1 = 288
             self.position2 = 134
