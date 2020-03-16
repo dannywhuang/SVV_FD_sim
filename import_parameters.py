@@ -74,8 +74,7 @@ class parametersWeight:
 
             self.mblockfuel = 3590 * 0.45359237 # [kg]
 
-            print("De 5 waardes die onder deze print functie staan in import_parameters -> parametersWeight, snap ik niet precies. Die moeten dus nog worden aangepast voor de actual data. Nu staan er nog de waardes voor de reference data. Groetjes Frans :)")
-
+            # These 5 constants have to be changed to the correct ones.
             self.position1 = 288
             self.position2 = 134
 
