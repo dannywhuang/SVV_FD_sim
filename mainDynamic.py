@@ -9,8 +9,9 @@ from matplotlib import rc
 import import_dynamic as imDyn
 import import_weight as imWeight
 
-#global constants
+# global constants
 g = 9.81
+
 
 def sampleFunction(param):
     '''
@@ -25,8 +26,8 @@ def sampleFunction(param):
     '''
 
     s = param.b+param.S+param.c
-    return s
 
+    return s
 
 
 def calcEigenShortPeriod(param):        #Verified by Danny
@@ -177,7 +178,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
 
     # input variables
     us = delta_e
-    ua = np.vstack((delta_a,delta_r)).T
+    ua = np.vstack((-delta_a,-delta_r)).T
 
     a0 = dfTime['vane_AOA'].to_numpy()[0]
     a_stab0 = dfTime['vane_AOA'].to_numpy()[0] - a0
@@ -463,7 +464,7 @@ class StateSpace:
         self.Eiga = Eiga
 
 
-class DynamicTime:
+class StartTime:
     def __init__(self,fileName):
         if fileName =='reference':
             self.tPhugoid = 3237   -25      #offset to get stationary conditions
@@ -474,12 +475,30 @@ class DynamicTime:
             self.tSpiral = 3920
         elif fileName =='actual':
             #need to be filled in manually after obtaining flight test data
-            self.tPhugoid = 0
-            self.tShortPeriod = 0
-            self.tDutchRoll = 0
-            self.tDutchRollYD = 0
-            self.tAperRoll = 0
-            self.tSpiral = 0
+            self.tPhugoid = 3120 + 30
+            self.tShortPeriod = 3300 + 52
+            self.tDutchRoll = 3480 + 42
+            self.tDutchRollYD = 3540
+            self.tAperRoll = 3360 + 90
+            self.tSpiral = 3780 + 1
+
+class DurationTime:
+    def __init__(self,fileName):
+        if fileName =='reference':
+            self.tPhugoid = 220
+            self.tShortPeriod = 10
+            self.tDutchRoll = 18
+            self.tDutchRollYD = 18
+            self.tAperRoll = 18
+            self.tSpiral = 18
+        elif fileName =='actual':
+            #need to be filled in manually after obtaining flight test data
+            self.tPhugoid = 170
+            self.tShortPeriod = 10
+            self.tDutchRoll = 18
+            self.tDutchRollYD = 18
+            self.tAperRoll = 30
+            self.tSpiral = 10
 
 
 class ParametersOld:
@@ -512,7 +531,7 @@ class ParametersOld:
         self.th0 = df['Ahrs1_Pitch'].to_numpy()[0] # pitch angle in the stationary flight condition [rad]
         # Aircraft mass
 
-        dfMass = imWeight.calcWeightCG(fileName,'dynamic')
+        dfMass = imWeight.weightMeas(fileName)
         dfMassSliced = dfMass.loc[(dfMass['time'] == self.t0actual)]
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
@@ -612,16 +631,34 @@ class ParametersOld:
         self.Cnr = -0.2061
         self.Cnda = -0.0120
         self.Cndr = -0.0939
-  
-        
+
+
 def main():
-    tRef = DynamicTime(fileName='reference')
-    paramPhugoid = ParametersOld(fileName='reference',t0=tRef.tPhugoid,SI=True) #Create parameters for phugoid motion
-    paramShortPeriod = ParametersOld(fileName='reference',t0=tRef.tShortPeriod,SI=True)
-    paramDutchRoll = ParametersOld(fileName='reference',t0=tRef.tDutchRoll,SI=True)
-    paramDutchRollYD = ParametersOld(fileName='reference', t0=tRef.tDutchRollYD,SI=True)
-    paramAperRoll = ParametersOld(fileName='reference', t0=tRef.tAperRoll,SI=True)
-    paramSpiral = ParametersOld(fileName='reference', t0=tRef.tSpiral,SI=True)
+    inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
+    while inputFile not in ['reference', 'actual']:
+        inputFile = input("Invalid input: choose between 'reference' or 'actual'")
+    showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
+    while showPlot not in ['Yes', 'No','yes','no']:
+        showPlot = input("Invalid input: choose between 'Yes' or 'No'")
+    doSimulate = input("\nDo you want to plot the simulation? 'Yes' or 'No': ")
+    while doSimulate not in ['Yes', 'No','yes','no']:
+        doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
+
+    if doSimulate == 'Yes' or doSimulate =='yes':
+        plotNumerical = True
+    else:
+        plotNumerical = False
+
+
+    tStart = StartTime(fileName=inputFile)
+    tDuration = DurationTime(fileName=inputFile)
+
+    paramPhugoid = ParametersOld(fileName=inputFile,t0=tStart.tPhugoid,SI=True) #Create parameters for phugoid motion
+    paramShortPeriod = ParametersOld(fileName=inputFile,t0=tStart.tShortPeriod,SI=True)
+    paramDutchRoll = ParametersOld(fileName=inputFile,t0=tStart.tDutchRoll,SI=True)
+    paramDutchRollYD = ParametersOld(fileName=inputFile, t0=tStart.tDutchRollYD,SI=True)
+    paramAperRoll = ParametersOld(fileName=inputFile, t0=tStart.tAperRoll,SI=True)
+    paramSpiral = ParametersOld(fileName=inputFile, t0=tStart.tSpiral,SI=True)
 
     ssPhugoid = stateSpace(paramPhugoid)
     ssShortPeriod = stateSpace(paramShortPeriod)
@@ -661,11 +698,12 @@ def main():
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
-    # plotMotionsTest(paramPhugoid,'reference',tRef.tPhugoid,220,ssPhugoid,'phugoid',plotNumerical=True,SI=True)  # plot from reference data for phugoid
-    # plotMotionsTest(paramShortPeriod, 'reference', tRef.tShortPeriod, 10, ssShortPeriod, 'short period', plotNumerical=True, SI=True)  # plot from reference data for short period
-    # plotMotionsTest(paramDutchRoll, 'reference', tRef.tDutchRoll, 18, ssDutchRoll, 'dutch roll',plotNumerical=True, SI=True)
-    # plotMotionsTest(paramAperRoll, 'reference', tRef.tAperRoll, 18, ssAperRoll, 'aper roll', plotNumerical=True,SI=True)
-    # plotMotionsTest(paramSpiral, 'reference', tRef.tSpiral, 18, ssSpiral, 'spiral', plotNumerical=True,SI=True)
+    if showPlot =='Yes' or showPlot =='yes':
+        plotMotionsTest(paramPhugoid,inputFile,tStart.tPhugoid,tDuration.tPhugoid,ssPhugoid,'phugoid',plotNumerical,SI=True)  # plot from reference data for phugoid
+        plotMotionsTest(paramShortPeriod, inputFile, tStart.tShortPeriod, tDuration.tShortPeriod, ssShortPeriod, 'short period', plotNumerical, SI=True)  # plot from reference data for short period
+        plotMotionsTest(paramDutchRoll, inputFile, tStart.tDutchRoll, tDuration.tDutchRoll, ssDutchRoll, 'dutch roll',plotNumerical, SI=True)
+        plotMotionsTest(paramAperRoll, inputFile, tStart.tAperRoll, tDuration.tAperRoll, ssAperRoll, 'aper roll', plotNumerical,SI=True)
+        plotMotionsTest(paramSpiral, inputFile, tStart.tSpiral, tDuration.tSpiral, ssSpiral, 'spiral', plotNumerical,SI=True)
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
