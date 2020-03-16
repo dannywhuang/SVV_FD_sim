@@ -61,18 +61,21 @@ class parametersWeight:
 
         if inputFile == 'actual':
             # **** Change these values to the correct ones *****
-            
+
             self.mpilot1 = 80                   # [kg]
-            self.mpilot2 = 102                  # [kg]
+            self.mpilot2 = 102                   # [kg]
+
             self.mcoordinator = 60              # [kg]
             self.mobserver1L = 67               # [kg]
             self.mobserver1R = 59               # [kg]
             self.mobserver2L = 78               # [kg]
             self.mobserver2R = 66               # [kg]
             self.mobserver3L = 86               # [kg]
-            self.mobserver3R = 87.5             # [kg]
 
-            self.mblockfuel = 3590 * 0.45359237 # [kg]
+            self.mobserver3R = 87.5               # [kg]
+
+            self.mblockfuel = 3590*0.45359237   # [kg]
+
 
             # These 5 constants have to be changed to the correct ones.
             self.position1 = 288
