@@ -81,7 +81,6 @@ def findFuelMoments():
     momentlst = dfm*(0.45359*0.0254)*100
     
     MomF = interp.interp1d(masslst,momentlst)
-    
     return MomF
 
 
@@ -178,13 +177,24 @@ def calcWeightCG(inputFile, dataSet):
     
     return MassBalDf
 
+def weightMeas(fileName):
+    df = pd.read_csv('weightData/' + fileName + '.csv')
+    return df
 
 
-''' Delete this part once understood: to see how functions work '''
-# MassBal1 = calcWeightCG('reference','static1')
-# MassBal2a = calcWeightCG('reference','static2a')
-# MassBal2b = calcWeightCG('reference','static2b')
-# MassBalDyn = calcWeightCG('reference','dynamic')
-MassBalDynAct = calcWeightCG('actual','dynamic')
 
+''' Run these lines to test if all functions work properly without any coding errors '''
+
+# inputFile = 'actual'
+
+# MassBal1 = calcWeightCG(inputFile,'static1')
+# MassBal2a = calcWeightCG(inputFile,'static2a')
+# MassBal2b = calcWeightCG(inputFile,'static2b')
+# MassBalDyn = calcWeightCG(inputFile,'dynamic')
+# MassBalDynAct = calcWeightCG('actual','dynamic')
+
+# print(MassBal1)
 # print(MassBal2a)
+# print(MassBal2b)
+# print(MassBalDyn)
+
