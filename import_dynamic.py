@@ -10,7 +10,6 @@ def matToCSV(inputFile):
     INPUT:\n
     ... inputFile [String]:         Name of the .mat file
     ... outputFile [String]:        Name of the .csv file
-
     OUTPUT:\n
     ... None
     '''
@@ -35,7 +34,6 @@ def convertDynToSI(inputFile):
     ========
     INPUT:\n
     ... inputFile [String]:         Name of the .csv file to be converted to SI units\n
-
     OUTPUT:\n
     ... None
     '''
@@ -90,7 +88,6 @@ def sliceTime(fileName,t0,duration,SI=True):
     ... t0 [Value]:                 Starting time\n
     ... duration [Value]:           Time duration\n
     ... SI [Boolean]:               True for SI, false for non SI\n
-
     OUTPUT:\n
     ... dfTime [Dataframe]:         Pandas dataframe containing data from t0 until t0+duration
     '''
