@@ -238,7 +238,8 @@ def staticFlightCondition(inputFile, dataSet):
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
     Mach = np.sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
-    Temp = TempMeas / ( 1 + (lamb - 1)/2 * Mach**2 )
+    Temp = TempMeas / ( 1 + (gamma -1)/2 * Mach**2)
+
     a = np.sqrt(gamma * R * Temp)
     Vt = Mach * a
     rho = pres / (R * Temp)
@@ -294,15 +295,15 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 ''' Create data files from the provided/measured data '''
-# excelToCSV('reference')
-# convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True, standard=False)
-# thrustToDAT('reference', SI=True, standard=True)
+excelToCSV('reference')
+convertStaticToSI('reference')
+thrustToDAT('reference', SI=True, standard=False)
+thrustToDAT('reference', SI=True, standard=True)
 
-# excelToCSV('actual')
-# convertStaticToSI('actual')
-# thrustToDAT('actual', SI=True, standard=False)
-# thrustToDAT('actual', SI=True, standard=True)
+excelToCSV('actual')
+convertStaticToSI('actual')
+thrustToDAT('actual', SI=True, standard=False)
+thrustToDAT('actual', SI=True, standard=True)
 
 
 
