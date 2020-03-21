@@ -230,7 +230,8 @@ def staticFlightCondition(inputFile, dataSet):
     lamb  = param.lamb 
     R     = param.R
 
-    Vc       = meas['Vi'].to_numpy()
+    Vi       = meas['Vi'].to_numpy()
+    Vc       = Vi - 2
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
     W        = staticWeight['Weight'].to_numpy()
@@ -297,13 +298,13 @@ def staticThrust(inputFile, dataSet, standard=False):
 ''' Create data files from the provided/measured data '''
 # excelToCSV('reference')
 # convertStaticToSI('reference')
-# thrustToDAT('reference', SI=True, standard=False)
-# thrustToDAT('reference', SI=True, standard=True)
+thrustToDAT('reference', SI=True, standard=False)
+thrustToDAT('reference', SI=True, standard=True)
 
 # excelToCSV('actual')
 # convertStaticToSI('actual')
-# thrustToDAT('actual', SI=True, standard=False)
-# thrustToDAT('actual', SI=True, standard=True)
+thrustToDAT('actual', SI=True, standard=False)
+thrustToDAT('actual', SI=True, standard=True)
 
 
 
