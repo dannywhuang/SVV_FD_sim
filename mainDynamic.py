@@ -8,6 +8,8 @@ from matplotlib import rc
 
 import import_dynamic as imDyn
 import import_weight as imWeight
+import staticCalc1 as calc1
+import staticCalc2 as calc2
 
 # global constants
 g = 9.81
@@ -187,11 +189,12 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     theta_stab0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]-theta0
     q0 = dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*(param.c/param.V0)
 
+    roll0 = dfTime['Ahrs1_Roll'].to_numpy()[0]
 
     # initial condition
     x0s = [0 , a_stab0 , theta_stab0 , q0]
     # x0a = [0 , dfTime['Ahrs1_Roll'].to_numpy()[0] ,(dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
-    x0a = [0 , 0 , (dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
+    x0a = [0 , roll0 , (dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
     # calculate responses
     YoutS, tS, XoutS = ml.lsim(stateSpaceS, us, time, x0s)
     YoutA, tA, XoutA = ml.lsim(stateSpaceA, ua, time, x0a)
@@ -403,29 +406,33 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
 
         plt.show()
 
-    elif motionName=='dutch roll' or motionName=='spiral' or motionName =='aper roll':
+    elif motionName=='dutch roll' or motionName=='dutch roll yd' or motionName=='spiral' or motionName =='aper roll':
 
         # get all variables
         p = dfTime['Ahrs1_bRollRate'].to_numpy()
         r = dfTime['Ahrs1_bYawRate'].to_numpy()
-
+        roll = dfTime['Ahrs1_Roll'].to_numpy()
         # createe figrue
-        fig, axs = plt.subplots(3,1,figsize=(16, 9), dpi=100)
+        fig, axs = plt.subplots(4,1,figsize=(16, 9), dpi=100)
         plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
 
         # plot q and r
-        axs[0].plot(time, p,label="Flight data" if plotNumerical==True else None)
-        axs[0].set_ylabel(r'$p$ [rad/s]', fontsize=12.0)
+        axs[0].plot(time, roll, label="Flight data" if plotNumerical == True else None)
+        axs[0].set_ylabel(r'Roll Angle [rad]', fontsize=12.0)
         axs[0].grid()
 
-        axs[1].plot(time, r,label="Flight data" if plotNumerical==True else None)
-        axs[1].set_ylabel(r'$r$ [rad/s]', fontsize=12.0)
+        axs[1].plot(time, p,label="Flight data" if plotNumerical==True else None)
+        axs[1].set_ylabel(r'Roll Rate [rad/s]', fontsize=12.0)
         axs[1].grid()
 
-        axs[2].plot(time,dfTime['delta_a'],label="Aileron")
-        axs[2].plot(time,dfTime['delta_r'],label="Rudder")
+        axs[2].plot(time, r,label="Flight data" if plotNumerical==True else None)
+        axs[2].set_ylabel(r'Yaw Rate [rad/s]', fontsize=12.0)
         axs[2].grid()
-        axs[2].legend()
+
+        axs[3].plot(time,dfTime['delta_a'],label="Aileron")
+        axs[3].plot(time,dfTime['delta_r'],label="Rudder")
+        axs[3].grid()
+        axs[3].legend()
 
 
         # set tick size
@@ -435,14 +442,16 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         axs[1].tick_params(axis='both', which='minor', labelsize=12)
         axs[2].tick_params(axis='both', which='major', labelsize=12)
         axs[2].tick_params(axis='both', which='minor', labelsize=12)
+        axs[3].tick_params(axis='both', which='major', labelsize=12)
+        axs[3].tick_params(axis='both', which='minor', labelsize=12)
 
         if plotNumerical==True:
-            axs[0].plot(tA, YoutA[:,2]*(2*param.V0/param.b), label='Simulation')
-            axs[1].plot(tA, YoutA[:,3]*(2*param.V0/param.b), label='Simulation')
+            axs[0].plot(tA,YoutA[:,1],label='Simulation')
             axs[0].legend()
+            axs[1].plot(tA, YoutA[:,2]*(2*param.V0/param.b), label='Simulation')
+            axs[2].plot(tA, YoutA[:,3]*(2*param.V0/param.b), label='Simulation')
             axs[1].legend()
-
-
+            axs[2].legend()
         # to make sure nothing overlaps
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
@@ -467,38 +476,38 @@ class StateSpace:
 class StartTime:
     def __init__(self,fileName):
         if fileName =='reference':
-            self.tPhugoid = 3237   -25      #offset to get stationary conditions
-            self.tShortPeriod = 3635     #offset to get stationary conditions
-            self.tDutchRoll = 3717
-            self.tDutchRollYD = 3767
-            self.tAperRoll = 3550
-            self.tSpiral = 3920
+            self.tPhugoid = 3237   -9      #starts at 3228 ends at 3450
+            self.tShortPeriod = 3635 -2     #starts at 3633 ends at 3645
+            self.tDutchRoll = 3717 - 1  # starts at 3716 ends at 3735
+            self.tDutchRollYD = 3767 -1   # starts at 3766 ends at 3776
+            self.tAperRoll = 3550 # starts at 3550 ends at 3562
+            self.tSpiral = 3920      # starts at 3922 ends at 4122
         elif fileName =='actual':
             #need to be filled in manually after obtaining flight test data
-            self.tPhugoid = 3120 + 30
-            self.tShortPeriod = 3300 + 52
-            self.tDutchRoll = 3480 + 42
-            self.tDutchRollYD = 3540
-            self.tAperRoll = 3360 + 90
-            self.tSpiral = 3780 + 1
+            self.tPhugoid = 3165  - 15  #starts at 3150 and ends at 3315
+            self.tShortPeriod = 3353 -1 #starts at 3352 and ends at 3364
+            self.tDutchRoll = 3522 + 1 #starts at 3523 ends at 3536
+            self.tDutchRollYD = 3573 # starts at 3573 ends at 3586
+            self.tAperRoll = 3403 + 47 # starts at 3450 ends at 3468
+            self.tSpiral = 3795  -14 # starts at 3781 ends at 3870      # but maybe stop simulation earlier since it diverges quick
 
 class DurationTime:
     def __init__(self,fileName):
         if fileName =='reference':
-            self.tPhugoid = 220
-            self.tShortPeriod = 10
-            self.tDutchRoll = 18
-            self.tDutchRollYD = 18
-            self.tAperRoll = 18
-            self.tSpiral = 18
+            self.tPhugoid = 222
+            self.tShortPeriod = 12
+            self.tDutchRoll = 19
+            self.tDutchRollYD = 10
+            self.tAperRoll = 12
+            self.tSpiral = 60       # actually 200 but changed to 60 becuase it diverges quickly
         elif fileName =='actual':
             #need to be filled in manually after obtaining flight test data
-            self.tPhugoid = 170
-            self.tShortPeriod = 10
-            self.tDutchRoll = 18
-            self.tDutchRollYD = 18
-            self.tAperRoll = 30
-            self.tSpiral = 10
+            self.tPhugoid = 165
+            self.tShortPeriod = 12
+            self.tDutchRoll = 13
+            self.tDutchRollYD = 13
+            self.tAperRoll = 18
+            self.tSpiral = 89
 
 
 class ParametersOld:
@@ -542,8 +551,11 @@ class ParametersOld:
         self.CLa = 5.084 # Slope of CL-alpha curve [ ]
 
         # Longitudinal stability
-        self.Cma = -0.5626 # longitudinal stabilty [ ]
-        self.Cmde = -1.1642 # elevator effectiveness [ ]
+        self.Cmde = calc2.calcElevEffectiveness(fileName)
+        self.Cma     = calc2.calcElevDeflection(fileName)[1]
+
+        # self.Cma = -0.5626 # longitudinal stabilty [ ]
+        # self.Cmde = -1.1642 # elevator effectiveness [ ]
 
         # Aircraft geometry
         self.S = 30.00  # wing area [m^2]
@@ -702,6 +714,7 @@ def main():
         plotMotionsTest(paramPhugoid,inputFile,tStart.tPhugoid,tDuration.tPhugoid,ssPhugoid,'phugoid',plotNumerical,SI=True)  # plot from reference data for phugoid
         plotMotionsTest(paramShortPeriod, inputFile, tStart.tShortPeriod, tDuration.tShortPeriod, ssShortPeriod, 'short period', plotNumerical, SI=True)  # plot from reference data for short period
         plotMotionsTest(paramDutchRoll, inputFile, tStart.tDutchRoll, tDuration.tDutchRoll, ssDutchRoll, 'dutch roll',plotNumerical, SI=True)
+        plotMotionsTest(paramDutchRollYD,inputFile,tStart.tDutchRollYD,tDuration.tDutchRollYD,ssDutchRollYD,'dutch roll yd',plotNumerical,SI=True)
         plotMotionsTest(paramAperRoll, inputFile, tStart.tAperRoll, tDuration.tAperRoll, ssAperRoll, 'aper roll', plotNumerical,SI=True)
         plotMotionsTest(paramSpiral, inputFile, tStart.tSpiral, tDuration.tSpiral, ssSpiral, 'spiral', plotNumerical,SI=True)
 
