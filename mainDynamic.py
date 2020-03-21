@@ -491,6 +491,7 @@ class StartTime:
             self.tAperRoll = 3403 + 47 # starts at 3450 ends at 3468
             self.tSpiral = 3795  -14 # starts at 3781 ends at 3870      # but maybe stop simulation earlier since it diverges quick
 
+
 class DurationTime:
     def __init__(self,fileName):
         if fileName =='reference':
