@@ -13,7 +13,12 @@ def main():
     # =============================
     # Aerodynamic parameters
     print("\n ============ Aerodynamic Parameters ============")
-    # ....
+    CLa, aoa0, e, CD0, aeroCoeff = calc1.calcAeroCoeff(inputFile,'static1')
+
+    print("\nThe lift curve slope for the "+inputFile+" data equals: CLa = ",round(CLa,3))
+    print("\nThe zero-lift angle of attack for the " + inputFile + " data equals: aoa0 = ", round(aoa0,3))
+    print("\nThe Oswald efficiency factor for the " + inputFile + " data equals: e = ", round(e,3))
+    print("\nThe zero-lift drag coefficient for the " + inputFile + " data equals: CD0 = ", round(CLa,3))
 
     # Stability parameters
     print("\n ============ Stability Parameters ============")
