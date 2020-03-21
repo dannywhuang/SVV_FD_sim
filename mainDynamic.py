@@ -594,7 +594,7 @@ class ParametersOld:
 
         # Stabiblity derivatives
         self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
-        self.CXu = -0.02792
+        self.CXu = -0.095
         self.CXa = +0.47966  # Positive! (has been erroneously negative since 1993)
         self.CXadot = +0.08330
         self.CXq = -0.28170
