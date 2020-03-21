@@ -230,7 +230,8 @@ def staticFlightCondition(inputFile, dataSet):
     lamb  = param.lamb 
     R     = param.R
 
-    Vc       = meas['Vi'].to_numpy()
+    Vi       = meas['Vi'].to_numpy()
+    Vc       = Vi - 2
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
     W        = staticWeight['Weight'].to_numpy()
@@ -238,7 +239,8 @@ def staticFlightCondition(inputFile, dataSet):
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
     Mach = np.sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
-    Temp = TempMeas / ( 1 + (lamb - 1)/2 * Mach**2 )
+    Temp = TempMeas / ( 1 + (gamma -1)/2 * Mach**2)
+
     a = np.sqrt(gamma * R * Temp)
     Vt = Mach * a
     rho = pres / (R * Temp)

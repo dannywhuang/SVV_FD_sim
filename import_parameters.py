@@ -76,8 +76,6 @@ class parametersWeight:
 
             self.mblockfuel = 3590*0.45359237   # [kg]
 
-
-            # These 5 constants have to be changed to the correct ones.
             self.position1 = 288
             self.position2 = 134
 
