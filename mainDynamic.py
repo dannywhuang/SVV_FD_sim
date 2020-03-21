@@ -35,10 +35,9 @@ def sampleFunction(param):
 
     return s
 
-
 def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
     pa = param
-    dfTime = imDyn.sliceTime('actual', 3480 + 42, 18, SI=True)
+    dfTime = imDyn.sliceTime('actual', 3480 + 43, 13, SI=True)
     time = dfTime['time'].to_numpy()
 
     p = dfTime['Ahrs1_bRollRate'].to_numpy()
@@ -99,7 +98,7 @@ def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
 def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
     pa = param
 
-    dfTime = imDyn.sliceTime('actual', 3120 + 30, 170, SI=True)
+    dfTime = imDyn.sliceTime('actual', 3120 + 30, 165, SI=True)
     time = dfTime['time'].to_numpy()
 
     Vt0 = dfTime['Dadc1_tas'].to_numpy()[0]
@@ -219,6 +218,7 @@ def damp(re,im,param,motion):
         wn = "boo"
 
     return zeta, w0,wn
+
 
 
 def calcEigenShortPeriod(param):        #Verified by Danny
@@ -832,19 +832,19 @@ class ParametersOld:
 
 def main():
     inputFile = 'actual' #input("\nChoose to evaluate the 'reference' or 'actual' data: ")
-    # while inputFile not in ['reference', 'actual']:
-    #     inputFile = input("Invalid input: choose between 'reference' or 'actual'")
-    # showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
-    # while showPlot not in ['Yes', 'No','yes','no']:
-    #      showPlot = input("Invalid input: choose between 'Yes' or 'No'")
-    # doSimulate = input("\nDo you want to plot the simulation? 'Yes' or 'No': ")
-    # while doSimulate not in ['Yes', 'No','yes','no']:
-    #     doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
-    # 
-    # if doSimulate == 'Yes' or doSimulate =='yes':
-    #     plotNumerical = True
-    # else:
-    #     plotNumerical = False
+    while inputFile not in ['reference', 'actual']:
+        inputFile = input("Invalid input: choose between 'reference' or 'actual'")
+    showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
+    while showPlot not in ['Yes', 'No','yes','no']:
+         showPlot = input("Invalid input: choose between 'Yes' or 'No'")
+    doSimulate = input("\nDo you want to plot the simulation? 'Yes' or 'No': ")
+    while doSimulate not in ['Yes', 'No','yes','no']:
+        doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
+
+    if doSimulate == 'Yes' or doSimulate =='yes':
+        plotNumerical = True
+    else:
+        plotNumerical = False
 
 
     tStart = StartTime(fileName=inputFile)
