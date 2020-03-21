@@ -482,6 +482,7 @@ class StartTime:
             self.tAperRoll = 3360 + 90
             self.tSpiral = 3780 + 1
 
+
 class DurationTime:
     def __init__(self,fileName):
         if fileName =='reference':
