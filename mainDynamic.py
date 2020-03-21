@@ -831,7 +831,7 @@ class ParametersOld:
         self.Cndr = -0.0939
 
 def main():
-    inputFile = 'actual' #input("\nChoose to evaluate the 'reference' or 'actual' data: ")
+    inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
         inputFile = input("Invalid input: choose between 'reference' or 'actual'")
     showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
