@@ -4,7 +4,6 @@ import staticCalc1 as calc1
 import staticCalc2 as calc2
 
 
-
 def main():
 
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")

@@ -130,7 +130,30 @@ def calcElevDeflection(inputFile):
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
     linregress = stats.linregress(aoa, delta)
-    Cma = linregress.slope * - Cmdelta
+    Cma = -1* linregress.slope * Cmdelta
+
+    # #--
+    # aoa = np.rad2deg(aoa)
+    # linregress = stats.linregress(aoa, delta)
+
+    # plt.figure('Elevator trim curve',[10,7])
+    # plt.scatter(aoa,delta)
+    # plt.plot(np.sort(aoa),np.sort(aoa)*linregress.slope + linregress.intercept, 'k--')
+    # plt.ylim(1.2*max(delta),1.2*min(delta))
+    # plt.grid()
+
+    # plt.title("Elevator Trim Curve",fontsize=22)
+
+    # plt.xlim(0.9*np.sort(aoa)[0],1.1*np.sort(aoa)[-1])
+    # plt.xlabel('aoa   ($\degree$)',fontsize=16)
+    # plt.ylabel('$\delta_{e}$   ($\degree$)',fontsize=16)
+    # plt.axhline(0,color='k')
+
+    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    # plt.text(1.03*np.sort(aoa)[1],1.05*delta[1],'$x_{cg}$ = 7.15 m\nW = 59875 kg',bbox=props,fontsize=16)
+
+    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    # plt.show()
 
     return deltaRed, Cma
 
@@ -185,17 +208,17 @@ def plotElevTrimCurve(inputFile):
     Xcg      = np.average(Weight2a['Xcg'].to_numpy())
     Weight   = np.average(Weight2a['Weight'].to_numpy())
 
-    plt.title("Reduced Elevator Trim Curve",fontsize=18)
+    plt.title("Reduced Elevator Trim Curve",fontsize=22)
     plt.plot(VeRed,deltaRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
+    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
     plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
-    plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=12)
+    plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(1.03*VeRed[1],1.05*deltaRed[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props)
+    plt.text(1.03*VeRed[1],1.05*deltaRed[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props,fontsize=16)
     plt.grid()
     return
 
@@ -230,17 +253,17 @@ def plotElevContrForceCurve(inputFile):
     # Calculation
     FeRed = np.sort( Fe*Ws/W )
 
-    plt.title("Reduced Elevator Control Force Curve",fontsize=18)
+    plt.title("Reduced Elevator Control Force Curve",fontsize=22)
     plt.plot(VeRed,FeRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
+    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
     plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
-    plt.ylabel('$F_{e}^{*}$   (kg)',fontsize=12)
+    plt.ylabel('$F_{e}^{*}$   (kg)',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props)
+    plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props,fontsize=16)
     plt.grid()
     return
 
@@ -250,7 +273,7 @@ def plotElevContrForceCurve(inputFile):
 
 ''' Delete this part once understood: to see how functions work '''
 
-# inputFile = 'reference'
+# inputFile = 'actual'
 
 # Cmdelta       = calcElevEffectiveness(inputFile)
 # deltaRed, Cma = calcElevDeflection(inputFile) 
