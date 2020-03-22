@@ -176,10 +176,14 @@ def plotElevTrimCurve(inputFile):
 
     # Import data
     flightCond2b = imStat.staticFlightCondition(inputFile,'static2a')
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
     
     # Obtain values from data
-    VeRed = np.sort(flightCond2b['VeRed'].to_numpy())
+    Ve       = np.sort(flightCond2b['Ve'].to_numpy())
+    VeRed    = np.sort(flightCond2b['VeRed'].to_numpy())
     deltaRed = np.rad2deg( np.sort( calcElevDeflection(inputFile)[0] ) )
+    Xcg      = np.average(Weight2a['Xcg'].to_numpy())
+    Weight   = np.average(Weight2a['Weight'].to_numpy())
 
     plt.title("Reduced Elevator Trim Curve",fontsize=18)
     plt.plot(VeRed,deltaRed,marker='o')
@@ -189,6 +193,10 @@ def plotElevTrimCurve(inputFile):
     plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
     plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=12)
     plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[1],1.05*deltaRed[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props)
+    plt.grid()
     return
 
 
@@ -228,10 +236,12 @@ def plotElevContrForceCurve(inputFile):
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
     plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
     plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
-    plt.ylabel('$F_{e}^{*}$   (N)',fontsize=12)
+    plt.ylabel('$F_{e}^{*}$   (kg)',fontsize=12)
     plt.axhline(0,color='k')
 
-    plt.text(1.03*VeRed[2],1.03*FeRed[2],'$x_{cg}$='+str(round(Xcg,2))+' m, $\delta_{t_{e}}$='+str(round(deltaTr,3))+'$\degree$',bbox=dict(fc='none'))
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props)
+    plt.grid()
     return
 
 
