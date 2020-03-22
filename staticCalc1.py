@@ -127,7 +127,7 @@ def plotPolar(inputFile):
     plt.xlabel(r'$C_D$ [$-$]',fontsize=12)
     plt.ylabel(r'$C_L$ [$-$]',fontsize=12)
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    plt.text(1.03*(CD[-3]+CD[-2])/2,1.05*CL[1],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
+    plt.text(1.03*CD[-3],1.05*CL[1],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
     plt.grid()
     plt.show()
 
