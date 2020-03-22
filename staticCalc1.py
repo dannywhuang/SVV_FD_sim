@@ -41,35 +41,35 @@ def calcAeroCoeff(inputFile, dataSet):
     Tp  = staticTp['Tp'].to_numpy()
 
     # Calculations
-    Cl = W / (0.5 * rho * Vt**2 * S)
-    Cd = Tp / (0.5 * rho * Vt**2 * S)
+    CL = W / (0.5 * rho * Vt**2 * S)
+    CD = Tp / (0.5 * rho * Vt**2 * S)
     
     aeroCoeff = {}
 
     if dataSet == 'static1':
-        Cl_aoa = stat.linregress(aoa_deg,Cl)
-        Cd_Cl2 = stat.linregress(Cl**2,Cd)
+        CL_aoa = stat.linregress(aoa_rad,CL)
+        CD_CL2 = stat.linregress(CL**2,CD)
 
-        Cla = Cl_aoa.slope
-        aoa0 = -Cl_aoa.intercept / Cla
-        e = 1/(np.pi*A*Cd_Cl2.slope)
-        Cd0 = Cd_Cl2.intercept
+        CLa = CL_aoa.slope
+        aoa0 = -CL_aoa.intercept / CLa
+        e = 1/(np.pi*A*CD_CL2.slope)
+        CD0 = CD_CL2.intercept
 
-        dataNames = ['Cl','Cd','e','Cla','Cd0','aoa0']
+        dataNames = ['CL','CD']
         for name in dataNames:
             aeroCoeff[name] = locals()[name]  
 
     else:
-        dataNames = ['Cl','Cd']
+        dataNames = ['CL','CD']
         for name in dataNames:
             aeroCoeff[name] = locals()[name]
     aeroCoeff = pd.DataFrame(data=aeroCoeff)
 
-    return aeroCoeff
+    return CLa, aoa0, e, CD0, aeroCoeff
 
 def plotPolar(inputFile):
     '''
-    DESCRIPTION:    This function plots the Cl-alpha and Cl-Cd curve
+    DESCRIPTION:    This function plots the CL-alpha and CL-CD curve
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
@@ -79,11 +79,13 @@ def plotPolar(inputFile):
     '''
 
     static1 = imStat.staticMeas(inputFile,'static1')
+    static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
     aeroCoeff = calcAeroCoeff(inputFile,'static1')
 
-    aoa = static1['aoa'].to_numpy()
-    Cl = aeroCoeff['Cl'].to_numpy()
-    Cd = aeroCoeff['Cd'].to_numpy()
+    aoa_rad = static1['aoa'].to_numpy()
+    aoa_deg = static1NotSI['aoa'].to_numpy()
+    CL = aeroCoeff['CL'].to_numpy()
+    CD = aeroCoeff['CD'].to_numpy()
     return
 
 
