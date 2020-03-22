@@ -124,9 +124,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     ... None
     '''
 
-
     param = imPar.parametersStatic()
-
 
     thrustData1 = {}
     thrustData2a = {}
@@ -138,21 +136,21 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     for name in dataNames:
         if name in ['hp','FFl','FFr']:
             if standard == True and name in ['FFl','FFr']:
-                len1   = np.size(staticMeas('reference', 'static1', SI)[name].to_numpy())
+                len1   = np.size(staticMeas(inputFile, 'static1', SI)[name].to_numpy())
                 data1  = np.ones(len1)*param.ms
-                len2a  = np.size(staticMeas('reference', 'static2a', SI)[name].to_numpy())
+                len2a  = np.size(staticMeas(inputFile, 'static2a', SI)[name].to_numpy())
                 data2a = np.ones(len2a)*param.ms
-                len2b  = np.size(staticMeas('reference', 'static2b', SI)[name].to_numpy())
+                len2b  = np.size(staticMeas(inputFile, 'static2b', SI)[name].to_numpy())
                 data2b = np.ones(len2b)*param.ms
             else:
-                data1  = staticMeas('reference', 'static1', SI)[name].to_numpy()
-                data2a = staticMeas('reference', 'static2a', SI)[name].to_numpy()
-                data2b = staticMeas('reference', 'static2b', SI)[name].to_numpy()
+                data1  = staticMeas(inputFile, 'static1', SI)[name].to_numpy()
+                data2a = staticMeas(inputFile, 'static2a', SI)[name].to_numpy()
+                data2b = staticMeas(inputFile, 'static2b', SI)[name].to_numpy()
         
         elif name in ['Mach','DeltaTisa']:
-            data1  = staticFlightCondition('reference', 'static1')[name].to_numpy()
-            data2a = staticFlightCondition('reference', 'static2a')[name].to_numpy()
-            data2b = staticFlightCondition('reference', 'static2b')[name].to_numpy()
+            data1  = staticFlightCondition(inputFile, 'static1')[name].to_numpy()
+            data2a = staticFlightCondition(inputFile, 'static2a')[name].to_numpy()
+            data2b = staticFlightCondition(inputFile, 'static2b')[name].to_numpy()
         thrustData1[name]  = data1
         thrustData2a[name] = data2a
         thrustData2b[name] = data2b
@@ -232,7 +230,8 @@ def staticFlightCondition(inputFile, dataSet):
     lamb  = param.lamb 
     R     = param.R
 
-    Vc       = meas['Vi'].to_numpy()
+    Vi       = meas['Vi'].to_numpy()
+    Vc       = Vi - 2
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
     W        = staticWeight['Weight'].to_numpy()
@@ -240,7 +239,8 @@ def staticFlightCondition(inputFile, dataSet):
     # Calculation
     pres = pres0 * (1 + lamb * hp / Temp0) ** (- g0 / (lamb * R))
     Mach = np.sqrt(2/(gamma - 1) * ((1 + pres0/pres * ((1 + (gamma - 1)/(2 * gamma) * rho0/pres0 * Vc**2)**( gamma/(gamma - 1) ) - 1))**( (gamma - 1)/gamma ) - 1))
-    Temp = TempMeas / ( 1 + (lamb - 1)/2 * Mach**2 )
+    Temp = TempMeas / ( 1 + (gamma -1)/2 * Mach**2)
+
     a = np.sqrt(gamma * R * Temp)
     Vt = Mach * a
     rho = pres / (R * Temp)
@@ -313,35 +313,27 @@ def staticThrust(inputFile, dataSet, standard=False):
 
 
 
-''' Delete this part once understood: to see how the functions work '''
+''' Run these lines to test if all functions work properly without any coding errors '''
 
-# static1  = staticMeas('reference', 'static1', SI=False)
-# static2a = staticMeas('reference', 'static2a', SI=False)
-# static2b = staticMeas('reference', 'static2b', SI=False)
+# inputFile = 'reference'
 
+# static1  = staticMeas(inputFile, 'static1')
+# static2a = staticMeas(inputFile, 'static2a')
+# static2b = staticMeas(inputFile, 'static2b')
 
-# static1_SI  = staticMeas('reference', 'static1')
-# static2a_SI = staticMeas('reference', 'static2a')
-# static2b_SI = staticMeas('reference', 'static2b')
+# staticCond1  = staticFlightCondition(inputFile, 'static1')
+# staticCond2a = staticFlightCondition(inputFile, 'static2a')
+# staticCond2b = staticFlightCondition(inputFile, 'static2b')
 
+# staticThrust1  = staticThrust(inputFile,'static1',standard=False)
+# staticThrust2a = staticThrust(inputFile,'static2a',standard=False)
+# staticThrust2b = staticThrust(inputFile,'static2b',standard=False)
 
-# staticCond1  = staticFlightCondition('reference', 'static1')
-# staticCond2a = staticFlightCondition('reference', 'static2a')
-# staticCond2b = staticFlightCondition('reference', 'static2b')
+# staticThrust1Stand  = staticThrust(inputFile,'static1',standard=True)
+# staticThrust2aStand = staticThrust(inputFile,'static2a',standard=True)
+# staticThrust2bStand = staticThrust(inputFile,'static2b',standard=True)
 
-
-# staticThrust1  = staticThrust('reference','static1',standard=False)
-# staticThrust2a = staticThrust('reference','static2a',standard=False)
-# staticThrust2b = staticThrust('reference','static2b',standard=False)
-
-# print('pressure altitude, static1: ',static1['hp'].to_numpy(),'/ pressure altitude, static1 in SI: ',static1_SI['hp'].to_numpy(),'\n')
-# print('indicated airspeed, static2a: ',static2a['Vi'].to_numpy(),'/ indicated airspeed, static2a in SI: ', static2a_SI['Vi'].to_numpy(),'\n')
-# print('meassured air temp, static2b: ',static2b['TAT'].to_numpy(),'/ meassured air temp, static2b in SI: ', static2b_SI['TAT'].to_numpy(),'\n')
-
-# print('true airspeed, static1 in SI: ',staticCond1['Vt'].to_numpy(),'/ Mach number, static1 in SI: ', staticCond1['Mach'].to_numpy(),'\n')
-# print('reduced equivalent airspeed, static2a in SI: ',staticCond2a['VeRed'].to_numpy(),'/ local pressure, static2a in SI: ', staticCond2a['pres'].to_numpy(),'\n')
-# print('local air density, static2b in SI: ',staticCond2b['rho'].to_numpy(),'/ corrected local temperature, static2b in SI: ', staticCond2b['Temp'].to_numpy(),'\n')
-
-# print('local thrust left engine, static 1 in [N?]: ',staticThrust1['Tpl'].to_numpy(),'/ local total thrust, static 1 in [N?]: ', staticThrust1['Tp'].to_numpy(),'\n')
-# print('local thrust right engine, static 2a in [N?]: ',staticThrust2a['Tpr'].to_numpy(),'/ local total thrust, static 2a in [N?]: ', staticThrust2a['Tp'].to_numpy(),'\n')
-# print('local thrust left engine, static 2b in [N?]: ',staticThrust2b['Tpl'].to_numpy(),'/ local total thrust, static 2b in [N?]: ', staticThrust2b['Tp'].to_numpy(),'\n')
+# print(static2a)
+# print(staticCond2a)
+# print(staticThrust2a)
+# print(staticThrust2aStand)

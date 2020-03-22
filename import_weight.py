@@ -37,6 +37,24 @@ def dynamicMeas(fileName,SI=True):
     return df
 
 
+def excelToCSV(inputFile):
+    '''
+    DESCRIPTION:    Converting fuelmoments data from excel file to csv file
+    ========
+    INPUT:\n
+    ... inputFile [String]:         Excel file name; choose between 'reference' or 'actual'\n
+
+    OUTPUT:\n
+    ... None
+    '''
+
+
+    # Reading the right rows in the excel file
+    fuelm  = pd.read_excel('FuelData/'+inputFile+'.xlsx')
+    fuelm.to_csv('FuelData/'+inputFile+'.csv', index=False)
+    return
+
+
 def findFuelMoments():
     '''
     DESCRIPTION:    Gives interpolant of the fuel moment as a function of the fuel mass. The excel file containing the fuel data needs to have the name 'FuelMoments'.
@@ -48,8 +66,8 @@ def findFuelMoments():
     ... MomF [Type]         Interpolant of the fuel moment as a function of fuel mass
     '''
 
-    dfm = pd.read_excel('FuelData/FuelMoments.xlsx',usecols='A')
-
+    dfm = pd.read_csv('FuelData/FuelMoments.csv',header=None)
+    dfm = np.squeeze(dfm)
     masslst = np.arange(100,5000,100)
     masslst = np.append(masslst,5008)
     
@@ -57,16 +75,14 @@ def findFuelMoments():
     masslst = masslst*0.45359
     
     dfm = np.array(dfm)
-    
-    momentlst = np.append(298.16,dfm)
+
     
     #Convert to SI
-    momentlst = momentlst*(0.45359*0.0254)*100
+    momentlst = dfm*(0.45359*0.0254)*100
     
     MomF = interp.interp1d(masslst,momentlst)
-    
     return MomF
-   
+
 
 def calcWeightCG(inputFile, dataSet):
     '''
@@ -154,19 +170,32 @@ def calcWeightCG(inputFile, dataSet):
 
     if dataSet == 'dynamic':
         MassBal['time'] = MeasData['time']
+        MassBalDf = pd.DataFrame(data=MassBal)
+        MassBalDf.to_csv('weightData/'+inputFile+'.csv',index=False)
 
-    MassBal = pd.DataFrame(data=MassBal)
+    MassBalDf = pd.DataFrame(data=MassBal)
     
-    return MassBal
+    return MassBalDf
+
+
+def weightMeas(fileName):
+    df = pd.read_csv('weightData/' + fileName + '.csv')
+    return df
 
 
 
+''' Run these lines to test if all functions work properly without any coding errors '''
 
+# inputFile = 'actual'
 
-''' Delete this part once understood: to see how functions work '''
-# MassBal1 = calcWeightCG('reference','static1')
-# MassBal2a = calcWeightCG('reference','static2a')
-# MassBal2b = calcWeightCG('reference','static2b')
-# MassBalDyn = calcWeightCG('reference','dynamic')
+# MassBal1 = calcWeightCG(inputFile,'static1')
+# MassBal2a = calcWeightCG(inputFile,'static2a')
+# MassBal2b = calcWeightCG(inputFile,'static2b')
+# MassBalDyn = calcWeightCG(inputFile,'dynamic')
+# MassBalDynAct = calcWeightCG('actual','dynamic')
 
+# print(MassBal1)
 # print(MassBal2a)
+# print(MassBal2b)
+# print(MassBalDyn)
+
