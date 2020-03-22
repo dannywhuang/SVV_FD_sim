@@ -78,19 +78,60 @@ def plotPolar(inputFile):
     OUTPUT:\n
     '''
 
+    # Import the data
+    param = imPar.parametersStatic()
     static1 = imStat.staticMeas(inputFile,'static1')
     static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
-    aeroCoeff = calcAeroCoeff(inputFile,'static1')[4]
+    aeroCoeff = calcAeroCoeff(inputFile,'static1')[-1]
+    static1FlightCond = imStat.staticFlightCondition(inputFile, 'static1')
 
+    # Get the required parameters
     aoa_rad = static1['aoa'].to_numpy()
     aoa_deg = static1NotSI['aoa'].to_numpy()
     CL = aeroCoeff['CL'].to_numpy()
     CD = aeroCoeff['CD'].to_numpy()
+
+    # Mach range
+    M = static1FlightCond['Mach'].to_numpy()
+    Mmax = np.max(M)
+    Mmin = np.min(M)
+
+    # Reynolds number range
+    rho = static1FlightCond['rho'].to_numpy()
+    Vt = static1FlightCond['Vt'].to_numpy()
+    mac = param.c
+    T = static1FlightCond['Temp'].to_numpy()*(9/5) # [Rankine]
+    T0 = 518.7    # [Rankine]
+    mu0 = 3.62E-7 # [lb s/ft2]
+
+    mu = mu0 * (T/T0)**1.5 * ((T0 + 198.72)/(T + 198.72))
+    mu = mu*(0.45359237/(0.3048**2))
+
+    Re = rho*Vt*mac/mu
+    Remax = np.max(Re)
+    Remin = np.min(Re)
+
+    # Plot lift curve
+    plt.title('Lift curve',fontsize=18)
+    plt.plot(aoa_deg,CL,marker='o')
+    plt.xlabel(r'$\alpha$ [$\degree$]',fontsize=12)
+    plt.ylabel(r'$C_L$ [$-$]',fontsize=12)
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*aoa_deg[1],1.05*CL[-2],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
+    plt.grid()
+    plt.show()
+
+    # Plot drag polar
+    plt.title('Drag polar',fontsize=18)
+    plt.plot(CD,CL,marker='o')
+    plt.xlabel(r'$C_D$ [$-$]',fontsize=12)
+    plt.ylabel(r'$C_L$ [$-$]',fontsize=12)
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*CD[-3],1.05*CL[1],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
+    plt.grid()
+    plt.show()
+
     return
-
-
-
-
 
 
 
