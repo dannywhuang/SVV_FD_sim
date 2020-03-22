@@ -5,12 +5,18 @@ import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
-
 import import_dynamic as imDyn
 import import_weight as imWeight
 
+import staticCalc1 as calc1
+import staticCalc2 as calc2
+
+from scipy import interpolate, signal
+
+
 # global constants
 g = 9.81
+
 
 
 def sampleFunction(param):
@@ -28,6 +34,191 @@ def sampleFunction(param):
     s = param.b+param.S+param.c
 
     return s
+
+def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
+    pa = param
+    dfTime = imDyn.sliceTime('actual', 3480 + 43, 13, SI=True)
+    time = dfTime['time'].to_numpy()
+
+    p = dfTime['Ahrs1_bRollRate'].to_numpy()
+    r = dfTime['Ahrs1_bYawRate'].to_numpy()
+
+    if var == 'p':
+
+        p = p
+
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
+
+        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
+        time_peaks, y_peaks = (time[peakind[1:4]]), (p[peakind[1:4]])
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3480 + 42 and i < 3480 + 42 + 18]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+        for i in fl(np.array(time)):
+            if half_a0 - 0.003 <= i <= half_a0 + 0.003:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'r':
+        p = r
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])  # 2-0
+        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
+
+        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
+        time_peaks, y_peaks = (time[peakind[2:]]), (p[peakind[2:]])
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3480 + 42 and i < 3480 + 42 + 18]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00325 <= i <= half_a0 + 0.00325:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+
+def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
+    pa = param
+
+    dfTime = imDyn.sliceTime('actual', 3120 + 30, 165, SI=True)
+    time = dfTime['time'].to_numpy()
+
+    Vt0 = dfTime['Dadc1_tas'].to_numpy()[0]
+    Vt = dfTime['Dadc1_tas'].to_numpy()
+    ubar = (Vt - Vt0) / Vt0
+
+    a0 = dfTime['vane_AOA'].to_numpy()[0]
+    a_stab = dfTime['vane_AOA'].to_numpy() - a0
+
+    theta0 = a0 - dfTime['Ahrs1_Pitch'].to_numpy()[
+        0]  # using theta0=gamma0 (see FD lectures notes page 95) and gamma = alpha-theta
+    theta_stab = dfTime['Ahrs1_Pitch'].to_numpy() - theta0
+
+    q = dfTime['Ahrs1_bPitchRate'].to_numpy()
+
+    if var == 'q':
+        p = q
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[11] - f.roots()[9])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3120 + 30 and i < 3432]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+        for i in fl(np.array(time)):
+            if half_a0 - 0.000004 <= i <= half_a0 + 0.000004:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'ubar':
+        p = -ubar
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00001 <= i <= half_a0 + 0.00001:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'theta_stab':
+        p = theta_stab
+        p = p - p[0]
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00005 <= i <= half_a0 + 0.00005:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+def damp(re,im,param,motion):
+    '''
+      DESCRIPTION:    Calculates damping coefficient and eigenfrequency
+      ========
+      INPUT:\n
+      ... re     :     real part of eigenvalue
+      ... im     :     imaginary part of eigenvalue
+      ... param  :     parameters for the eigenmotion
+      ... motion :     motion type: 'dutchroll' or 'phugoid'
+      OUTPUT:\n
+      ... zeta   :     Damping coefficient
+      ... wn     :     Natural frequency
+      ... w0     :     Angular frequency
+      '''
+    #param = p
+    p     = ParametersOld
+    if motion=='dutchroll':
+        zeta  = -re/(np.sqrt(re**2+ im**2))
+        w0    = (np.sqrt(re**2+ im**2))*(p.V0/p.b)
+        wn    = w0*np.sqrt(1-zeta**2)
+    if motion=='phugoid':
+        zeta = -re / (np.sqrt(re ** 2 + im ** 2))
+        w0 = (np.sqrt(re ** 2 + im ** 2)) * (p.V0 / p.c)
+        wn = w0 * np.sqrt(1 - zeta ** 2)
+    if motion=='dutchroll-sim':
+        w0   = p.V0/p.b *np.sqrt(p.Cnb/(2*p.mub*p.KZ2))
+        zeta = -p.Cnr/(4*np.sqrt(2*p.mub*p.KZ2*p.Cnb))
+        wn = "boo"
+
+    return zeta, w0,wn
+
 
 
 def calcEigenShortPeriod(param):        #Verified by Danny
@@ -187,11 +378,12 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     theta_stab0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]-theta0
     q0 = dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*(param.c/param.V0)
 
+    roll0 = dfTime['Ahrs1_Roll'].to_numpy()[0]
 
     # initial condition
     x0s = [0 , a_stab0 , theta_stab0 , q0]
     # x0a = [0 , dfTime['Ahrs1_Roll'].to_numpy()[0] ,(dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
-    x0a = [0 , 0 , (dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
+    x0a = [0 , roll0 , (dfTime['Ahrs1_bRollRate'].to_numpy()[0]*param.b)/(2*param.V0)  , (dfTime['Ahrs1_bYawRate'].to_numpy()[0]*param.b)/(2*param.V0)]
     # calculate responses
     YoutS, tS, XoutS = ml.lsim(stateSpaceS, us, time, x0s)
     YoutA, tA, XoutA = ml.lsim(stateSpaceA, ua, time, x0a)
@@ -312,7 +504,6 @@ def stateSpace(param):
 
     return ss
 
-
 def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumerical,SI=True):
     '''
     DESCRIPTION:    Plot eigenmotions from flight test data
@@ -403,29 +594,33 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
 
         plt.show()
 
-    elif motionName=='dutch roll' or motionName=='spiral' or motionName =='aper roll':
+    elif motionName=='dutch roll' or motionName=='dutch roll yd' or motionName=='spiral' or motionName =='aper roll':
 
         # get all variables
         p = dfTime['Ahrs1_bRollRate'].to_numpy()
         r = dfTime['Ahrs1_bYawRate'].to_numpy()
-
+        roll = dfTime['Ahrs1_Roll'].to_numpy()
         # createe figrue
-        fig, axs = plt.subplots(3,1,figsize=(16, 9), dpi=100)
+        fig, axs = plt.subplots(4,1,figsize=(16, 9), dpi=100)
         plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
 
         # plot q and r
-        axs[0].plot(time, p,label="Flight data" if plotNumerical==True else None)
-        axs[0].set_ylabel(r'$p$ [rad/s]', fontsize=12.0)
+        axs[0].plot(time, roll, label="Flight data" if plotNumerical == True else None)
+        axs[0].set_ylabel(r'Roll Angle [rad]', fontsize=12.0)
         axs[0].grid()
 
-        axs[1].plot(time, r,label="Flight data" if plotNumerical==True else None)
-        axs[1].set_ylabel(r'$r$ [rad/s]', fontsize=12.0)
+        axs[1].plot(time, p,label="Flight data" if plotNumerical==True else None)
+        axs[1].set_ylabel(r'Roll Rate [rad/s]', fontsize=12.0)
         axs[1].grid()
 
-        axs[2].plot(time,dfTime['delta_a'],label="Aileron")
-        axs[2].plot(time,dfTime['delta_r'],label="Rudder")
+        axs[2].plot(time, r,label="Flight data" if plotNumerical==True else None)
+        axs[2].set_ylabel(r'Yaw Rate [rad/s]', fontsize=12.0)
         axs[2].grid()
-        axs[2].legend()
+
+        axs[3].plot(time,dfTime['delta_a'],label="Aileron")
+        axs[3].plot(time,dfTime['delta_r'],label="Rudder")
+        axs[3].grid()
+        axs[3].legend()
 
 
         # set tick size
@@ -435,20 +630,21 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         axs[1].tick_params(axis='both', which='minor', labelsize=12)
         axs[2].tick_params(axis='both', which='major', labelsize=12)
         axs[2].tick_params(axis='both', which='minor', labelsize=12)
+        axs[3].tick_params(axis='both', which='major', labelsize=12)
+        axs[3].tick_params(axis='both', which='minor', labelsize=12)
 
         if plotNumerical==True:
-            axs[0].plot(tA, YoutA[:,2]*(2*param.V0/param.b), label='Simulation')
-            axs[1].plot(tA, YoutA[:,3]*(2*param.V0/param.b), label='Simulation')
+            axs[0].plot(tA,YoutA[:,1],label='Simulation')
             axs[0].legend()
+            axs[1].plot(tA, YoutA[:,2]*(2*param.V0/param.b), label='Simulation')
+            axs[2].plot(tA, YoutA[:,3]*(2*param.V0/param.b), label='Simulation')
             axs[1].legend()
-
-
+            axs[2].legend()
         # to make sure nothing overlaps
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
         plt.show()
     return
-
 
 class StateSpace:
     def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
@@ -463,43 +659,42 @@ class StateSpace:
         self.Eigs = Eigs
         self.Eiga = Eiga
 
-
 class StartTime:
     def __init__(self,fileName):
         if fileName =='reference':
-            self.tPhugoid = 3237   -25      #offset to get stationary conditions
-            self.tShortPeriod = 3635     #offset to get stationary conditions
-            self.tDutchRoll = 3717
-            self.tDutchRollYD = 3767
-            self.tAperRoll = 3550
-            self.tSpiral = 3920
+            self.tPhugoid = 3237   -9      #starts at 3228 ends at 3450
+            self.tShortPeriod = 3635 -2     #starts at 3633 ends at 3645
+            self.tDutchRoll = 3717 - 1  # starts at 3716 ends at 3735
+            self.tDutchRollYD = 3767 -1   # starts at 3766 ends at 3776
+            self.tAperRoll = 3550 # starts at 3550 ends at 3562
+            self.tSpiral = 3920      # starts at 3922 ends at 4122
         elif fileName =='actual':
             #need to be filled in manually after obtaining flight test data
-            self.tPhugoid = 3120 + 30
-            self.tShortPeriod = 3300 + 52
-            self.tDutchRoll = 3480 + 42
-            self.tDutchRollYD = 3540
-            self.tAperRoll = 3360 + 90
-            self.tSpiral = 3780 + 1
+            self.tPhugoid = 3165  - 15  #starts at 3150 and ends at 3315
+            self.tShortPeriod = 3353 -1 #starts at 3352 and ends at 3364
+            self.tDutchRoll = 3522 + 1 #starts at 3523 ends at 3536
+            self.tDutchRollYD = 3573 # starts at 3573 ends at 3586
+            self.tAperRoll = 3403 + 47 # starts at 3450 ends at 3468
+            self.tSpiral = 3795  -14 # starts at 3781 ends at 3870      # but maybe stop simulation earlier since it diverges quick
+
 
 class DurationTime:
     def __init__(self,fileName):
         if fileName =='reference':
-            self.tPhugoid = 220
-            self.tShortPeriod = 10
-            self.tDutchRoll = 18
-            self.tDutchRollYD = 18
-            self.tAperRoll = 18
-            self.tSpiral = 18
+            self.tPhugoid = 222
+            self.tShortPeriod = 12
+            self.tDutchRoll = 19
+            self.tDutchRollYD = 10
+            self.tAperRoll = 12
+            self.tSpiral = 60       # actually 200 but changed to 60 becuase it diverges quickly
         elif fileName =='actual':
             #need to be filled in manually after obtaining flight test data
-            self.tPhugoid = 170
-            self.tShortPeriod = 10
-            self.tDutchRoll = 18
-            self.tDutchRollYD = 18
-            self.tAperRoll = 30
-            self.tSpiral = 10
-
+            self.tPhugoid = 165
+            self.tShortPeriod = 12
+            self.tDutchRoll = 13
+            self.tDutchRollYD = 13
+            self.tAperRoll = 18
+            self.tSpiral = 89
 
 class ParametersOld:
     '''
@@ -542,8 +737,11 @@ class ParametersOld:
         self.CLa = 5.084 # Slope of CL-alpha curve [ ]
 
         # Longitudinal stability
-        self.Cma = -0.5626 # longitudinal stabilty [ ]
-        self.Cmde = -1.1642 # elevator effectiveness [ ]
+        self.Cmde = calc2.calcElevEffectiveness(fileName)
+        self.Cma     = calc2.calcElevDeflection(fileName)[1]
+
+        # self.Cma = -0.5626 # longitudinal stabilty [ ]
+        # self.Cmde = -1.1642 # elevator effectiveness [ ]
 
         # Aircraft geometry
         self.S = 30.00  # wing area [m^2]
@@ -632,14 +830,13 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-
 def main():
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
         inputFile = input("Invalid input: choose between 'reference' or 'actual'")
     showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
     while showPlot not in ['Yes', 'No','yes','no']:
-        showPlot = input("Invalid input: choose between 'Yes' or 'No'")
+         showPlot = input("Invalid input: choose between 'Yes' or 'No'")
     doSimulate = input("\nDo you want to plot the simulation? 'Yes' or 'No': ")
     while doSimulate not in ['Yes', 'No','yes','no']:
         doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
@@ -678,32 +875,50 @@ def main():
     print("eigenvalues analytical Phugoid:",eigPhugoid)
     print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
 
-    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
-    print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
-
+    # print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
+    # print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
+    #
     print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
     print("eigenvalues analytical dutch roll:", eigDutchRoll)
     print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
-
-    print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
-    print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
-    print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp,"\n")
-
-    print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0])
-    print("eigenvalue analytical damped aperiodic roll:",eigAperRoll,"\n")
-
-    print("eigenvalue ss spiral:", ssSpiral.Eiga[3])
-    print("eigenvalue analytical spiral:" ,eigSpiral)
+    #
+    # print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
+    # print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
+    # print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp,"\n")
+    #
+    # print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0])
+    # print("eigenvalue analytical damped aperiodic roll:",eigAperRoll,"\n")
+    #
+    # print("eigenvalue ss spiral:", ssSpiral.Eiga[3])
+    # print("eigenvalue analytical spiral:" ,eigSpiral)
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
+
     if showPlot =='Yes' or showPlot =='yes':
         plotMotionsTest(paramPhugoid,inputFile,tStart.tPhugoid,tDuration.tPhugoid,ssPhugoid,'phugoid',plotNumerical,SI=True)  # plot from reference data for phugoid
         plotMotionsTest(paramShortPeriod, inputFile, tStart.tShortPeriod, tDuration.tShortPeriod, ssShortPeriod, 'short period', plotNumerical, SI=True)  # plot from reference data for short period
         plotMotionsTest(paramDutchRoll, inputFile, tStart.tDutchRoll, tDuration.tDutchRoll, ssDutchRoll, 'dutch roll',plotNumerical, SI=True)
+        plotMotionsTest(paramDutchRollYD,inputFile,tStart.tDutchRollYD,tDuration.tDutchRollYD,ssDutchRollYD,'dutch roll yd',plotNumerical,SI=True)
         plotMotionsTest(paramAperRoll, inputFile, tStart.tAperRoll, tDuration.tAperRoll, ssAperRoll, 'aper roll', plotNumerical,SI=True)
         plotMotionsTest(paramSpiral, inputFile, tStart.tSpiral, tDuration.tSpiral, ssSpiral, 'spiral', plotNumerical,SI=True)
+
+
+
+    re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
+    re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
+    re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
+    re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
+    re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
+
+    print("eigenv response Phugoid for ubar:", re,'i',im)
+    print("eigenv response Phugoid for q:", re1, 'i', im1)
+    print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
+    print("eigenv response Dutchroll for p:", re3, 'i', im3)
+    print("eigenv response Dutchroll for r:", re4, 'i', im4)
+
+
 
 if __name__ == "__main__":
     #this is run when script is started, dont change

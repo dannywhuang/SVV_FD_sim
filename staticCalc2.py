@@ -1,6 +1,7 @@
 import scipy.stats as stats
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 import import_parameters as imPar
 import import_static as imStat
@@ -161,7 +162,7 @@ def calcElevContrForce(inputFile):
     return FeRed
 
 
-def plotElevTrimCurve():
+def plotElevTrimCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
@@ -173,11 +174,33 @@ def plotElevTrimCurve():
     ... param [Type]:               Parameter description
     '''
 
+    # Import data
+    flightCond2b = imStat.staticFlightCondition(inputFile,'static2a')
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
+    
+    # Obtain values from data
+    Ve       = np.sort(flightCond2b['Ve'].to_numpy())
+    VeRed    = np.sort(flightCond2b['VeRed'].to_numpy())
+    deltaRed = np.rad2deg( np.sort( calcElevDeflection(inputFile)[0] ) )
+    Xcg      = np.average(Weight2a['Xcg'].to_numpy())
+    Weight   = np.average(Weight2a['Weight'].to_numpy())
 
+    plt.title("Reduced Elevator Trim Curve",fontsize=18)
+    plt.plot(VeRed,deltaRed,marker='o')
+
+    plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
+    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
+    plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
+    plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=12)
+    plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[1],1.05*deltaRed[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props)
+    plt.grid()
     return
 
 
-def plotElevContrForceCurve():
+def plotElevContrForceCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
@@ -190,9 +213,36 @@ def plotElevContrForceCurve():
     '''
 
 
-    return 
+    # Import data
+    param        = imPar.parametersStatic()
+    static2a     = imStat.staticMeas(inputFile,'static2a')
+    flightCond2a = imStat.staticFlightCondition(inputFile,'static2a')
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
+    
+    # Obtain values from data
+    Ws    = param.Ws
+    VeRed = np.sort( flightCond2a['VeRed'].to_numpy() )
+    Fe    = static2a['Fe'].to_numpy()
+    W     = Weight2a['Weight'].to_numpy()
+    Xcg   = np.average(Weight2a['Xcg'].to_numpy())
+    deltaTr = np.rad2deg(np.average(static2a['deltaTr']))
 
+    # Calculation
+    FeRed = np.sort( Fe*Ws/W )
 
+    plt.title("Reduced Elevator Control Force Curve",fontsize=18)
+    plt.plot(VeRed,FeRed,marker='o')
+
+    plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
+    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
+    plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
+    plt.ylabel('$F_{e}^{*}$   (kg)',fontsize=12)
+    plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props)
+    plt.grid()
+    return
 
 
 
@@ -209,3 +259,15 @@ def plotElevContrForceCurve():
 # print('\nCmdelta =',Cmdelta, '\n')
 # print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
 # print('reduced elevator control force:', FeRed, '\n')
+
+# plt.figure(1)
+# plotElevContrForceCurve('reference')
+# plotElevContrForceCurve('actual')
+# plt.grid()
+
+# plt.figure(2)
+# plotElevTrimCurve('reference')
+# plotElevTrimCurve('actual')
+# plt.grid()
+
+# plt.show()
