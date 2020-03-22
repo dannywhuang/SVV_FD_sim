@@ -39,8 +39,7 @@ def main():
     # =============================
     # Aerodynamic plots
     print("\n ============ Aerodynamic Plots ============")
-    # ....
-    
+    calc1.plotPolar(inputFile)
 
     # Stability plots
     print("\n ============ Stability Plots ============")
