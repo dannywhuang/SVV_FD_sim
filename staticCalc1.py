@@ -80,7 +80,7 @@ def plotPolar(inputFile):
 
     static1 = imStat.staticMeas(inputFile,'static1')
     static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
-    aeroCoeff = calcAeroCoeff(inputFile,'static1')
+    aeroCoeff = calcAeroCoeff(inputFile,'static1')[4]
 
     aoa_rad = static1['aoa'].to_numpy()
     aoa_deg = static1NotSI['aoa'].to_numpy()
