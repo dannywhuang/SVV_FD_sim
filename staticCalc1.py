@@ -41,35 +41,35 @@ def calcAeroCoeff(inputFile, dataSet):
     Tp  = staticTp['Tp'].to_numpy()
 
     # Calculations
-    Cl = W / (0.5 * rho * Vt**2 * S)
-    Cd = Tp / (0.5 * rho * Vt**2 * S)
+    CL = W / (0.5 * rho * Vt**2 * S)
+    CD = Tp / (0.5 * rho * Vt**2 * S)
     
     aeroCoeff = {}
 
     if dataSet == 'static1':
-        Cl_aoa = stat.linregress(aoa_deg,Cl)
-        Cd_Cl2 = stat.linregress(Cl**2,Cd)
+        CL_aoa = stat.linregress(aoa_rad,CL)
+        CD_CL2 = stat.linregress(CL**2,CD)
 
-        Cla = Cl_aoa.slope
-        aoa0 = -Cl_aoa.intercept / Cla
-        e = 1/(np.pi*A*Cd_Cl2.slope)
-        Cd0 = Cd_Cl2.intercept
+        CLa = CL_aoa.slope
+        aoa0 = -CL_aoa.intercept / CLa
+        e = 1/(np.pi*A*CD_CL2.slope)
+        CD0 = CD_CL2.intercept
 
-        dataNames = ['Cl','Cd','e','Cla','Cd0','aoa0']
+        dataNames = ['CL','CD']
         for name in dataNames:
             aeroCoeff[name] = locals()[name]  
 
     else:
-        dataNames = ['Cl','Cd']
+        dataNames = ['CL','CD']
         for name in dataNames:
             aeroCoeff[name] = locals()[name]
     aeroCoeff = pd.DataFrame(data=aeroCoeff)
 
-    return aeroCoeff
+    return CLa, aoa0, e, CD0, aeroCoeff
 
 def plotPolar(inputFile):
     '''
-    DESCRIPTION:    This function plots the Cl-alpha and Cl-Cd curve
+    DESCRIPTION:    This function plots the CL-alpha and CL-CD curve
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
@@ -78,17 +78,60 @@ def plotPolar(inputFile):
     OUTPUT:\n
     '''
 
+    # Import the data
+    param = imPar.parametersStatic()
     static1 = imStat.staticMeas(inputFile,'static1')
-    aeroCoeff = calcAeroCoeff(inputFile,'static1')
+    static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
+    aeroCoeff = calcAeroCoeff(inputFile,'static1')[-1]
+    static1FlightCond = imStat.staticFlightCondition(inputFile, 'static1')
 
-    aoa = static1['aoa'].to_numpy()
-    Cl = aeroCoeff['Cl'].to_numpy()
-    Cd = aeroCoeff['Cd'].to_numpy()
+    # Get the required parameters
+    aoa_rad = static1['aoa'].to_numpy()
+    aoa_deg = static1NotSI['aoa'].to_numpy()
+    CL = aeroCoeff['CL'].to_numpy()
+    CD = aeroCoeff['CD'].to_numpy()
+
+    # Mach range
+    M = static1FlightCond['Mach'].to_numpy()
+    Mmax = np.max(M)
+    Mmin = np.min(M)
+
+    # Reynolds number range
+    rho = static1FlightCond['rho'].to_numpy()
+    Vt = static1FlightCond['Vt'].to_numpy()
+    mac = param.c
+    T = static1FlightCond['Temp'].to_numpy()*(9/5) # [Rankine]
+    T0 = 518.7    # [Rankine]
+    mu0 = 3.62E-7 # [lb s/ft2]
+
+    mu = mu0 * (T/T0)**1.5 * ((T0 + 198.72)/(T + 198.72))
+    mu = mu*(0.45359237/(0.3048**2))
+
+    Re = rho*Vt*mac/mu
+    Remax = np.max(Re)
+    Remin = np.min(Re)
+
+    # Plot lift curve
+    plt.title('Lift curve',fontsize=18)
+    plt.plot(aoa_deg,CL,marker='o')
+    plt.xlabel(r'$\alpha$ [$\degree$]',fontsize=12)
+    plt.ylabel(r'$C_L$ [$-$]',fontsize=12)
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*aoa_deg[1],1.05*CL[-2],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
+    plt.grid()
+    plt.show()
+
+    # Plot drag polar
+    plt.title('Drag polar',fontsize=18)
+    plt.plot(CD,CL,marker='o')
+    plt.xlabel(r'$C_D$ [$-$]',fontsize=12)
+    plt.ylabel(r'$C_L$ [$-$]',fontsize=12)
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*CD[-3],1.05*CL[1],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props)
+    plt.grid()
+    plt.show()
+
     return
-
-
-
-
 
 
 
