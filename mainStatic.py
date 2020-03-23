@@ -42,6 +42,7 @@ def main():
     # =============================
     if plots == 'y':
         # Aerodynamic plots
+        calc1.plotLift(inputFile)
         calc1.plotPolar(inputFile)
 
         # Stability plots
