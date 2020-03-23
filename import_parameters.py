@@ -1,6 +1,7 @@
 import math 
 
 
+# Contains all constant parameters which holds for all flights
 class parametersStatic:
     def __init__(self):
         # Aircraft geometry:
@@ -35,6 +36,7 @@ class parametersStatic:
         self.CmTc = -0.0064
 
 
+# Contains all constant parameters needed for the weight and xcg calculations which differs for each flight
 class parametersWeight:
     def __init__(self, inputFile):
 
