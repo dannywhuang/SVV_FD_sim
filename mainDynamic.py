@@ -18,6 +18,82 @@ from scipy import interpolate, signal
 g = 9.81
 
 
+
+def plot_initial_value_Response(StateSpace, motion):
+    '''
+    DESCRIPTION:    Calculate responses using dynamic measurement data
+    ========
+    INPUT:\n
+    ... motion [String]:            'symmetric' or 'asymmetric'
+    ... Statespace [Class]:         Class with symmetric and asymmetric statespace\n
+
+    OUTPUT:\n
+    ... Plots :              Initial value response
+
+    '''
+
+    # get state matrices using aircraft parameters
+    As = StateSpace.As
+    Bs = StateSpace.Bs
+    Cs = StateSpace.Cs
+    Ds = StateSpace.Ds
+    Aa = StateSpace.Aa
+    Ba = StateSpace.Ba
+    Ca = StateSpace.Ca
+    Da = StateSpace.Da
+
+    # create state space models
+    if motion== 'symmetric':
+         ss = ml.ss(As,Bs,Cs,Ds)
+    if motion == 'asymmetric':
+         ss = ml.ss(Aa,Ba,Ca,Da)
+
+    # initial value vector
+    a = np.matrix('1;0;0;0')
+    b = np.matrix('0;1;0;0')
+    c = np.matrix('0;0;1;0')
+    d = np.matrix('0;0;0;1')
+    t = np.arange(0,40,0.001)
+    # response
+    res1 = (ml.initial(ss,T=t,X0=a))[0][:,0]
+    res2 = (ml.initial(ss, T=t, X0=b))[0][:,1]
+    res3 = (ml.initial(ss,T=t,X0=c))[0][:,2]
+    res4 = (ml.initial(ss, T=t, X0=d))[0][:,3]
+
+    fig, axs = plt.subplots(4, 1, figsize=(16, 9), dpi=100)
+    plt.suptitle('Initial value response for  ' + (motion) + ' motion', fontsize=16)
+
+    # plot q and r
+    axs[0].plot(t, res1)
+    axs[0].set_ylabel(r'$\hat{u}$ [-]' if motion== 'symmetric' else r'$\beta$ [rad]', fontsize=12.0)
+    axs[0].grid()
+
+    axs[1].plot(t, res2 )
+    axs[1].set_ylabel(r'$\alpha$ [rad]' if motion== 'symmetric' else r'$\psi$ [rad]', fontsize=12.0)
+    axs[1].grid()
+
+    axs[2].plot(t, res3 )
+    axs[2].set_ylabel(r'$\theta$ [rad]'if motion== 'symmetric' else r'p [rad/s]' , fontsize=12.0)
+    axs[2].grid()
+
+    axs[3].plot(t, res4)
+    axs[3].set_ylabel(r'q [rad/s]'if motion== 'symmetric' else r'q [rad/s]', fontsize=12.0)
+    axs[3].grid()
+
+
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=12)
+    axs[0].tick_params(axis='both', which='minor', labelsize=12)
+    axs[1].tick_params(axis='both', which='major', labelsize=12)
+    axs[1].tick_params(axis='both', which='minor', labelsize=12)
+    axs[2].tick_params(axis='both', which='major', labelsize=12)
+    axs[2].tick_params(axis='both', which='minor', labelsize=12)
+    axs[3].tick_params(axis='both', which='major', labelsize=12)
+    axs[3].tick_params(axis='both', which='minor', labelsize=12)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    plt.show()
+
 def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
     pa = param
     dfTime = imDyn.sliceTime('actual', 3480 + 43, 13, SI=True)
@@ -170,7 +246,6 @@ def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
         re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
 
         return re, imag
-
 
 def damp(re,im,param,motion):
     '''
@@ -523,7 +598,6 @@ def stateSpace(param):
 
     return ss
 
-
 def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumerical,SI=True):
     '''
     DESCRIPTION:    Plot eigenmotions from flight test data
@@ -690,7 +764,6 @@ class StateSpace:
         self.Eigs = Eigs
         self.Eiga = Eiga
 
-
 class StartTime:
     def __init__(self,fileName):
         if fileName =='reference':
@@ -727,7 +800,6 @@ class DurationTime:
             self.tDutchRollYD = 13
             self.tAperRoll = 18
             self.tSpiral = 89
-
 
 class ParametersOld:
     '''
@@ -869,7 +941,6 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-
 def main():
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
@@ -881,7 +952,7 @@ def main():
     while doSimulate not in ['Yes', 'No','yes','no']:
         doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
 
-    if doSimulate == 'Yes' or doSimulate == 'yes':
+    if doSimulate == 'Yes' or doSimulate =='yes':
         plotNumerical = True
     else:
         plotNumerical = False
@@ -958,7 +1029,10 @@ def main():
     print("eigenv response Dutchroll for p:", re3, 'i', im3)
     print("eigenv response Dutchroll for r:", re4, 'i', im4)
 
+    #plot response to initial value
 
+    #plot_initial_value_Response(ssPhugoid, 'symmetric')
+    #plot_initial_value_Response(ssDutchRoll, 'asymmetric')
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
