@@ -69,7 +69,7 @@ def calcAeroCoeff(inputFile, dataSet):
 
 def plotLift(inputFile):
     '''
-    DESCRIPTION:    This function plots the CL-alpha and CL-CD curve
+    DESCRIPTION:    This function plots the CL-alpha curve
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
@@ -122,7 +122,7 @@ def plotLift(inputFile):
 
 def plotPolar(inputFile):
     '''
-    DESCRIPTION:    This function plots the CL-alpha and CL-CD curve
+    DESCRIPTION:    This function plots the CL-CD curve
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
@@ -167,7 +167,7 @@ def plotPolar(inputFile):
     plt.plot(CD,CL,marker='o')
     plt.xlabel(r'$C_D$ [$-$]',fontsize=16)
     plt.ylabel(r'$C_L$ [$-$]',fontsize=16)
-    
+
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
     plt.text(1.03*CD[-3],1.05*CL[1],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props,fontsize=16)
     plt.grid()
