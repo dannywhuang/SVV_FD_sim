@@ -46,8 +46,8 @@ def main():
         calc1.plotPolar(inputFile)
 
         # Stability plots
-        calc2.plotElevTrimCurve(inputFile)
-        calc2.plotElevContrForceCurve(inputFile)
+        calc2.plotRedElevTrimCurve(inputFile)
+        calc2.plotRedElevContrForceCurve(inputFile)
 
         print("\nTot de volgende keer!!!\n")
 
