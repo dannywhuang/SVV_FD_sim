@@ -7,30 +7,17 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 import import_dynamic as imDyn
 import import_weight as imWeight
+
 import staticCalc1 as calc1
 import staticCalc2 as calc2
+
 from scipy import interpolate, signal
+
 
 # global constants
 g = 9.81
 
 
-
-def sampleFunction(param):
-    '''
-    DESCRIPTION:    Function description
-    ========
-    INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
-
-    OUTPUT:\n
-    ... param [Type]:               Parameter description
-    '''
-
-    s = param.b+param.S+param.c
-
-    return s
 
 def plot_initial_value_Response(StateSpace, motion):
     '''
@@ -166,6 +153,7 @@ def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
 
         return re, imag
 
+
 def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
     pa = param
 
@@ -290,6 +278,43 @@ def damp(re,im,param,motion):
 
     return zeta, w0,wn
 
+
+def calcDampFrequency(eig,param,type):
+    '''
+      DESCRIPTION:    Calculates damping coefficient and eigenfrequency
+      ========
+      INPUT:\n
+      ... re     :     real part of eigenvalue
+      ... im     :     imaginary part of eigenvalue
+      ... param  :     parameters for the eigenmotion
+      ... motion :     motion type: 'dutchroll' or 'phugoid'
+      OUTPUT:\n
+      ... zeta   :     Damping coefficient
+      ... wn     :     Natural frequency
+      ... w0     :     Angular frequency
+      '''
+    #param = p
+    re = np.real(eig)
+    im = np.imag(eig)
+
+    if type=='symmetric':
+        Thalf = ((np.log(0.5))/re)*(param.c / param.V0)
+        P = ((2*np.pi)/im)*(param.c / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.b)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    elif type=='asymmetric':
+        Thalf = ((np.log(0.5))/re)*(param.b / param.V0)
+        P = ((2*np.pi)/im)*(param.b / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.c)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    else:
+        raise ValueError("Choose symmetric or asymmetric as type")
+
+    return Thalf,P,zeta, w0, wn
+
+
 def calcEigenShortPeriod(param):        #Verified by Danny
     '''
     DESCRIPTION:    Calculate eigenvalues of state space matrix for short period
@@ -308,6 +333,7 @@ def calcEigenShortPeriod(param):        #Verified by Danny
     lambdac = np.roots(p)
 
     return lambdac
+
 
 def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot different from state space eigenvalues
     '''
@@ -337,6 +363,7 @@ def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot differe
 
     return lambdac, lambdacSimp
 
+
 def calcEigenDutchRoll(param): # Verified by Danny
     '''
     DESCRIPTION:    Calculate eigenvalues of state space matrix for dutch roll
@@ -361,6 +388,7 @@ def calcEigenDutchRoll(param): # Verified by Danny
 
     return lambdac, lambdacSimp
 
+
 def calcEigenAperRoll(param):   # Verified by Danny
     '''
     DESCRIPTION:    Calculate eigenvalues of state space matrix for short period
@@ -377,6 +405,7 @@ def calcEigenAperRoll(param):   # Verified by Danny
 
     return lambdac
 
+
 def calcEigenSpiral(param): # Verified by Danny
     '''
     DESCRIPTION:    Calculate eigenvalues of state space matrix for spiral
@@ -392,6 +421,7 @@ def calcEigenSpiral(param): # Verified by Danny
     lambdac = ((2*param.CL*(param.Clb*param.Cnr-param.Cnb*param.Clr))/(param.Clp*(param.CYb*param.Cnr+4*param.mub*param.Cnb)-param.Cnp*(param.CYb*param.Clr+4*param.mub*param.Clb)))
 
     return lambdac
+
 
 def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     '''
@@ -454,6 +484,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     
     return tS, XoutS, YoutS, tA, XoutA, YoutA
 
+
 def calcStepResponse(t0, duration, fileName, StateSpace, param, SI=True):
     '''
     DESCRIPTION:    Calculate responses using dynamic measurement data
@@ -505,6 +536,7 @@ def calcStepResponse(t0, duration, fileName, StateSpace, param, SI=True):
     YoutA, tA = ml.step(stateSpaceA, time, x0a)
 
     return tS, YoutS, tA, YoutA
+
 
 def stateSpace(param):
     '''
@@ -654,8 +686,6 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         # to make sure nothing overlaps
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-
-
         plt.show()
 
     elif motionName=='dutch roll' or motionName=='dutch roll yd' or motionName=='spiral' or motionName =='aper roll':
@@ -707,9 +737,19 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         # to make sure nothing overlaps
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-
         plt.show()
     return
+
+
+class EigenValue:
+    def __init__(self,eig,param,type):
+        self.eig = eig
+        self.Thalf = calcDampFrequency(eig,param,type)[0]
+        self.P = calcDampFrequency(eig,param,type)[1]
+        self.zeta =  calcDampFrequency(eig,param,type)[2]
+        self.w0 =  calcDampFrequency(eig,param,type)[3]
+        self.wn =  calcDampFrequency(eig,param,type)[4]
+
 
 class StateSpace:
     def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
@@ -741,6 +781,7 @@ class StartTime:
             self.tDutchRollYD = 3573 # starts at 3573 ends at 3586
             self.tAperRoll = 3403 + 47 # starts at 3450 ends at 3468
             self.tSpiral = 3795  -14 # starts at 3781 ends at 3870      # but maybe stop simulation earlier since it diverges quick
+
 
 class DurationTime:
     def __init__(self,fileName):
@@ -795,10 +836,16 @@ class ParametersOld:
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
 
+
+
+        aeroCoeff = calc1.calcAeroCoeff(fileName,'static1')
         # aerodynamic properties
-        self.e = 0.8 # Oswald factor [ ]
-        self.CD0 = 0.04 # Zero lift drag coefficient [ ]
-        self.CLa = 5.084 # Slope of CL-alpha curve [ ]
+        self.e = aeroCoeff[2] # Oswald factor [ ]
+        self.CD0 = aeroCoeff[3] # Zero lift drag coefficient [ ]
+        self.CLa = aeroCoeff[0] # Slope of CL-alpha curve [ ]
+        # self.e = 0.8 # Oswald factor [ ]
+        # self.CD0 = 0.04 # Zero lift drag coefficient [ ]
+        # self.CLa = 5.084 # Slope of CL-alpha curve [ ]
 
         # Longitudinal stability
         self.Cmde = calc2.calcElevEffectiveness(fileName)
@@ -830,7 +877,7 @@ class ParametersOld:
         self.pres0 = 101325 # pressure at sea level in ISA [pa]
         self.R      = 287.05  # specific gas constant [m^2/sec^2K]
         self.g      = 9.81  # [m/sec^2] (gravity constant)
-        self.gamma = 1.4 #
+        self.gamma = 1.4 # 
 
         # air density [kg/m^3]
         self.rho    = self.rho0 * pow( ((1+( self.lamb * self.hp0 / self.Temp0))), (-((self.g / (self.lamb *self.R)) + 1)))
@@ -935,16 +982,16 @@ def main():
     eigAperRoll = calcEigenAperRoll(paramAperRoll)
     eigSpiral = calcEigenSpiral(paramSpiral)
 
-    # print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2:])
-    # print("eigenvalues analytical Phugoid:",eigPhugoid)
-    # print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
+    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2:])
+    print("eigenvalues analytical Phugoid:",eigPhugoid)
+    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
 
     # print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
     # print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
     #
-    # print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
-    # print("eigenvalues analytical dutch roll:", eigDutchRoll)
-    # print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
+    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
+    print("eigenvalues analytical dutch roll:", eigDutchRoll)
+    print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
     #
     # print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
     # print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
@@ -970,18 +1017,17 @@ def main():
 
 
 
-    # re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
-    # re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
-    # re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
-    # re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
-    # re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
-    #
-    # print("eigenv response Phugoid for ubar:", re,'i',im)
-    # print("eigenv response Phugoid for q:", re1, 'i', im1)
-    # print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
-    # print("eigenv response Dutchroll for p:", re3, 'i', im3)
-    # print("eigenv response Dutchroll for r:", re4, 'i', im4)
+    re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
+    re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
+    re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
+    re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
+    re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
 
+    print("eigenv response Phugoid for ubar:", re,'i',im)
+    print("eigenv response Phugoid for q:", re1, 'i', im1)
+    print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
+    print("eigenv response Dutchroll for p:", re3, 'i', im3)
+    print("eigenv response Dutchroll for r:", re4, 'i', im4)
 
     #plot response to initial value
 
