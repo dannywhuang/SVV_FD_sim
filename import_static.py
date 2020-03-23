@@ -6,7 +6,7 @@ import import_parameters as imPar
 import import_weight as imWeight
 
 
-# To create files
+# Create an empty folder
 def createFolder(directory):
     '''
     DESCRIPTION:    Create an empty folder
@@ -26,7 +26,7 @@ def createFolder(directory):
     return
 
 
-# To create files
+# Put excel data in .csv file
 def excelToCSV(inputFile):
     '''
     DESCRIPTION:    Converting measurement data from excel file to csv file
@@ -53,7 +53,7 @@ def excelToCSV(inputFile):
     return 
 
 
-# To create files
+# Convert measured static data to SI units and create a .csv file containing data in SI units
 def convertStaticToSI(inputFile):
     '''
     DESCRIPTION:    Converts static measurement series units to SI units
@@ -111,7 +111,7 @@ def convertStaticToSI(inputFile):
     return 
 
 
-# To create files
+# Create input file (matlab.dat) for the thrust.exe program
 def thrustToDAT(inputFile, SI=True, standard=False):
     '''
     DESCRIPTION:    Creates a dat file names 'matlab.dat' containing all necessary data to be used for the thrust calculations. This data is obtained from the created csv files and some parameters will be calculated before putting everyting in the created .dat file.
@@ -177,7 +177,7 @@ def thrustToDAT(inputFile, SI=True, standard=False):
     return
 
 
-# Return data from files
+# Read static measurement data from either the SI .csv file or the non-SI .csv file
 def staticMeas(inputFile, dataSet, SI=True):
     '''
     DESCRIPTION:    Get data from .csv file
@@ -200,7 +200,7 @@ def staticMeas(inputFile, dataSet, SI=True):
     return df
 
 
-# Return data from files
+# Calculate other flight conditions for all static measurements
 def staticFlightCondition(inputFile, dataSet):
     '''
     DESCRIPTION:    This function calculates flight conditions using the measurement data. 
@@ -259,7 +259,7 @@ def staticFlightCondition(inputFile, dataSet):
     return staticFlightCond
 
 
-# Return data from files
+# Read the created thrust.dat file which contains all thrust values & calculate the thrust coefficient
 def staticThrust(inputFile, dataSet, standard=False):
     '''
     DESCRIPTION:    This function reads the created thrust file. 
@@ -305,35 +305,3 @@ def staticThrust(inputFile, dataSet, standard=False):
 # convertStaticToSI('actual')
 # thrustToDAT('actual', SI=True, standard=False)
 # thrustToDAT('actual', SI=True, standard=True)
-
-
-
-
-
-
-
-
-''' Run these lines to test if all functions work properly without any coding errors '''
-
-# inputFile = 'reference'
-
-# static1  = staticMeas(inputFile, 'static1')
-# static2a = staticMeas(inputFile, 'static2a')
-# static2b = staticMeas(inputFile, 'static2b')
-
-# staticCond1  = staticFlightCondition(inputFile, 'static1')
-# staticCond2a = staticFlightCondition(inputFile, 'static2a')
-# staticCond2b = staticFlightCondition(inputFile, 'static2b')
-
-# staticThrust1  = staticThrust(inputFile,'static1',standard=False)
-# staticThrust2a = staticThrust(inputFile,'static2a',standard=False)
-# staticThrust2b = staticThrust(inputFile,'static2b',standard=False)
-
-# staticThrust1Stand  = staticThrust(inputFile,'static1',standard=True)
-# staticThrust2aStand = staticThrust(inputFile,'static2a',standard=True)
-# staticThrust2bStand = staticThrust(inputFile,'static2b',standard=True)
-
-# print(static2a)
-# print(staticCond2a)
-# print(staticThrust2a)
-# print(staticThrust2aStand)
