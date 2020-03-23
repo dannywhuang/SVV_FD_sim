@@ -5,6 +5,7 @@ import scipy.interpolate as interp
 import import_parameters as imPar
 
 
+# Read static measurement data
 def staticMeas(inputFile, dataSet, SI=True):
     '''
     DESCRIPTION:    Get data from .csv file
@@ -27,6 +28,7 @@ def staticMeas(inputFile, dataSet, SI=True):
     return df
 
 
+# Read dynamic data from the .csv file
 def dynamicMeas(fileName,SI=True):
     if SI==True:
         df = pd.read_csv('dynamicData/'+fileName+'_SI.csv')
@@ -37,6 +39,7 @@ def dynamicMeas(fileName,SI=True):
     return df
 
 
+# Put excel data in .csv file
 def excelToCSV(inputFile):
     '''
     DESCRIPTION:    Converting fuelmoments data from excel file to csv file
@@ -55,6 +58,7 @@ def excelToCSV(inputFile):
     return
 
 
+# Calculate fuel moments
 def findFuelMoments():
     '''
     DESCRIPTION:    Gives interpolant of the fuel moment as a function of the fuel mass. The excel file containing the fuel data needs to have the name 'FuelMoments'.
@@ -84,6 +88,7 @@ def findFuelMoments():
     return MomF
 
 
+# Calculate W and xcg & create .csv file containing W and xcg for dynamic measurements
 def calcWeightCG(inputFile, dataSet):
     '''
     DESCRIPTION:    Gives dataframe for Weight and Xcg
@@ -178,24 +183,7 @@ def calcWeightCG(inputFile, dataSet):
     return MassBalDf
 
 
+# Read W and xcg for dynamic measurements 
 def weightMeas(fileName):
     df = pd.read_csv('weightData/' + fileName + '.csv')
     return df
-
-
-
-''' Run these lines to test if all functions work properly without any coding errors '''
-
-# inputFile = 'actual'
-
-# MassBal1 = calcWeightCG(inputFile,'static1')
-# MassBal2a = calcWeightCG(inputFile,'static2a')
-# MassBal2b = calcWeightCG(inputFile,'static2b')
-# MassBalDyn = calcWeightCG(inputFile,'dynamic')
-# MassBalDynAct = calcWeightCG('actual','dynamic')
-
-# print(MassBal1)
-# print(MassBal2a)
-# print(MassBal2b)
-# print(MassBalDyn)
-

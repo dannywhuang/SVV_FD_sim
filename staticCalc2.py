@@ -8,6 +8,7 @@ import import_static as imStat
 import import_weight as imWeight 
 
 
+# Calculates CL and CD for all static measurements
 def calcAeroCoeff(inputFile, dataSet):
     '''
     DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
@@ -66,6 +67,7 @@ def calcAeroCoeff(inputFile, dataSet):
     return aeroCoeff
 
 
+# Calculates Cmdelta using the static measurement static2b
 def calcElevEffectiveness(inputFile):
     '''
     DESCRIPTION:    This function calculates the elevator effectiveness (Cmdelta), which is a constant value found from the measurements when changing xcg.
@@ -100,6 +102,7 @@ def calcElevEffectiveness(inputFile):
     return Cmdelta
 
 
+# Calculates the reduced elevator deflections for all static2a measurements and Cma using static2a measurements
 def calcElevDeflection(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator deflection for each meassurement taken during the second stationary meassurement series.
@@ -158,6 +161,7 @@ def calcElevDeflection(inputFile):
     return deltaRed, Cma
 
 
+# Calculates the reduced elevator control force for all static2a measurements
 def calcElevContrForce(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator control force for each meassurement taken during the second stationary measurement series.
@@ -185,16 +189,16 @@ def calcElevContrForce(inputFile):
     return FeRed
 
 
+# Makes the reduced elevator trim curve using static2a measurements
 def plotElevTrimCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
     INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
     OUTPUT:\n
-    ... param [Type]:               Parameter description
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
     '''
 
     # Import data
@@ -224,16 +228,16 @@ def plotElevTrimCurve(inputFile):
     return
 
 
+# Makes the reduced elevator control force curve using static2a measurements
 def plotElevContrForceCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
     INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
     OUTPUT:\n
-    ... param [Type]:               Parameter description
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
     '''
 
 
@@ -269,31 +273,3 @@ def plotElevContrForceCurve(inputFile):
     plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props,fontsize=16)
     plt.grid()
     return
-
-
-
-
-
-''' Delete this part once understood: to see how functions work '''
-
-# inputFile = 'actual'
-
-# Cmdelta       = calcElevEffectiveness(inputFile)
-# deltaRed, Cma = calcElevDeflection(inputFile) 
-# FeRed         = calcElevContrForce(inputFile)
-
-# print('\nCmdelta =',Cmdelta, '\n')
-# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-# print('reduced elevator control force:', FeRed, '\n')
-
-# plt.figure(1)
-# plotElevContrForceCurve('reference')
-# plotElevContrForceCurve('actual')
-# plt.grid()
-
-# plt.figure(2)
-# plotElevTrimCurve('reference')
-# plotElevTrimCurve('actual')
-# plt.grid()
-
-# plt.show()
