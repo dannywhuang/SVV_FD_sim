@@ -18,23 +18,6 @@ from scipy import interpolate, signal
 g = 9.81
 
 
-
-def sampleFunction(param):
-    '''
-    DESCRIPTION:    Function description
-    ========
-    INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
-
-    OUTPUT:\n
-    ... param [Type]:               Parameter description
-    '''
-
-    s = param.b+param.S+param.c
-
-    return s
-
 def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
     pa = param
     dfTime = imDyn.sliceTime('actual', 3480 + 43, 13, SI=True)
@@ -188,6 +171,7 @@ def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
 
         return re, imag
 
+
 def damp(re,im,param,motion):
     '''
       DESCRIPTION:    Calculates damping coefficient and eigenfrequency
@@ -219,6 +203,41 @@ def damp(re,im,param,motion):
 
     return zeta, w0,wn
 
+
+def calcDampFrequency(eig,param,type):
+    '''
+      DESCRIPTION:    Calculates damping coefficient and eigenfrequency
+      ========
+      INPUT:\n
+      ... re     :     real part of eigenvalue
+      ... im     :     imaginary part of eigenvalue
+      ... param  :     parameters for the eigenmotion
+      ... motion :     motion type: 'dutchroll' or 'phugoid'
+      OUTPUT:\n
+      ... zeta   :     Damping coefficient
+      ... wn     :     Natural frequency
+      ... w0     :     Angular frequency
+      '''
+    #param = p
+    re = np.real(eig)
+    im = np.imag(eig)
+
+    if type=='symmetric':
+        Thalf = ((np.log(0.5))/re)*(param.c / param.V0)
+        P = ((2*np.pi)/im)*(param.c / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.b)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    elif type=='asymmetric':
+        Thalf = ((np.log(0.5))/re)*(param.b / param.V0)
+        P = ((2*np.pi)/im)*(param.b / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.c)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    else:
+        raise ValueError("Choose symmetric or asymmetric as type")
+
+    return Thalf,P,zeta, w0, wn
 
 
 def calcEigenShortPeriod(param):        #Verified by Danny
@@ -504,6 +523,7 @@ def stateSpace(param):
 
     return ss
 
+
 def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumerical,SI=True):
     '''
     DESCRIPTION:    Plot eigenmotions from flight test data
@@ -646,6 +666,17 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         plt.show()
     return
 
+
+class EigenValue:
+    def __init__(self,eig,param,type):
+        self.eig = eig
+        self.Thalf = calcDampFrequency(eig,param,type)[0]
+        self.P = calcDampFrequency(eig,param,type)[1]
+        self.zeta =  calcDampFrequency(eig,param,type)[2]
+        self.w0 =  calcDampFrequency(eig,param,type)[3]
+        self.wn =  calcDampFrequency(eig,param,type)[4]
+
+
 class StateSpace:
     def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
         self.As = As
@@ -658,6 +689,7 @@ class StateSpace:
         self.Da = Da
         self.Eigs = Eigs
         self.Eiga = Eiga
+
 
 class StartTime:
     def __init__(self,fileName):
@@ -696,6 +728,7 @@ class DurationTime:
             self.tAperRoll = 18
             self.tSpiral = 89
 
+
 class ParametersOld:
     '''
         DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
@@ -731,10 +764,16 @@ class ParametersOld:
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
 
+
+
+        aeroCoeff = calc1.calcAeroCoeff(fileName,'static1')
         # aerodynamic properties
-        self.e = 0.8 # Oswald factor [ ]
-        self.CD0 = 0.04 # Zero lift drag coefficient [ ]
-        self.CLa = 5.084 # Slope of CL-alpha curve [ ]
+        self.e = aeroCoeff[2] # Oswald factor [ ]
+        self.CD0 = aeroCoeff[3] # Zero lift drag coefficient [ ]
+        self.CLa = aeroCoeff[0] # Slope of CL-alpha curve [ ]
+        # self.e = 0.8 # Oswald factor [ ]
+        # self.CD0 = 0.04 # Zero lift drag coefficient [ ]
+        # self.CLa = 5.084 # Slope of CL-alpha curve [ ]
 
         # Longitudinal stability
         self.Cmde = calc2.calcElevEffectiveness(fileName)
@@ -830,6 +869,7 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
+
 def main():
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
@@ -841,7 +881,7 @@ def main():
     while doSimulate not in ['Yes', 'No','yes','no']:
         doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
 
-    if doSimulate == 'Yes' or doSimulate =='yes':
+    if doSimulate == 'Yes' or doSimulate == 'yes':
         plotNumerical = True
     else:
         plotNumerical = False
