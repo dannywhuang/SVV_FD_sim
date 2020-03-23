@@ -202,19 +202,20 @@ def plotElevTrimCurve(inputFile):
     Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
     
     # Obtain values from data
-    Ve       = np.sort(flightCond2b['Ve'].to_numpy())
     VeRed    = np.sort(flightCond2b['VeRed'].to_numpy())
     deltaRed = np.rad2deg( np.sort( calcElevDeflection(inputFile)[0] ) )
     Xcg      = np.average(Weight2a['Xcg'].to_numpy())
     Weight   = np.average(Weight2a['Weight'].to_numpy())
 
+    # Start plotting
+    plt.figure('Elevator Trim Curve',[10,7])
     plt.title("Reduced Elevator Trim Curve",fontsize=22)
     plt.plot(VeRed,deltaRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
+    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
     plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
-    plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=16)
+    plt.ylabel(r'$\delta_{e}^{*}$   ($\degree$)',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
@@ -253,13 +254,15 @@ def plotElevContrForceCurve(inputFile):
     # Calculation
     FeRed = np.sort( Fe*Ws/W )
 
+    # Start plotting
+    plt.figure('Elevator Force Control Curve',[10,7])
     plt.title("Reduced Elevator Control Force Curve",fontsize=22)
     plt.plot(VeRed,FeRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
+    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
     plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
-    plt.ylabel('$F_{e}^{*}$   (kg)',fontsize=16)
+    plt.ylabel(r'$F_{e}^{*}$   (kg)',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
