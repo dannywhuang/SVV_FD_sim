@@ -8,6 +8,7 @@ import import_static as imStat
 import import_weight as imWeight
 
 
+# Calculates CL and CD for all static measurements & CLa, aoa0, e, CD0m using static1
 def calcAeroCoeff(inputFile, dataSet):
     '''
     DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
@@ -67,6 +68,8 @@ def calcAeroCoeff(inputFile, dataSet):
 
     return CLa, aoa0, e, CD0, aeroCoeff
 
+
+# Makes the lift curve using the static1 measurements
 def plotLift(inputFile):
     '''
     DESCRIPTION:    This function plots the CL-alpha curve
@@ -120,6 +123,7 @@ def plotLift(inputFile):
     plt.grid()
 
 
+# Makes the drag polar using the static1 measurements
 def plotPolar(inputFile):
     '''
     DESCRIPTION:    This function plots the CL-CD curve
@@ -173,19 +177,3 @@ def plotPolar(inputFile):
     plt.grid()
 
     return
-
-
-
-
-
-''' Run these lines to test if all functions work properly without any coding errors '''
-
-# inputFile = 'reference'
-
-# aeroCeoff1 = calcAeroCoeff(inputFile, 'static1')
-# aeroCoeff2a = calcAeroCoeff(inputFile, 'static2a')
-# aeroCoeff2b = calcAeroCoeff(inputFile, 'static2b')
-
-# print(aeroCeoff1)
-# print(aeroCoeff2a)
-# print(aeroCoeff2b)
