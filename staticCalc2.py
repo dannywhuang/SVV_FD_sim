@@ -8,6 +8,7 @@ import import_static as imStat
 import import_weight as imWeight 
 
 
+# Calculates CL and CD for all static measurements
 def calcAeroCoeff(inputFile, dataSet):
     '''
     DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
@@ -66,6 +67,7 @@ def calcAeroCoeff(inputFile, dataSet):
     return aeroCoeff
 
 
+# Calculates Cmdelta using the static measurement static2b
 def calcElevEffectiveness(inputFile):
     '''
     DESCRIPTION:    This function calculates the elevator effectiveness (Cmdelta), which is a constant value found from the measurements when changing xcg.
@@ -100,6 +102,7 @@ def calcElevEffectiveness(inputFile):
     return Cmdelta
 
 
+# Calculates the reduced elevator deflections for all static2a measurements and Cma using static2a measurements
 def calcElevDeflection(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator deflection for each meassurement taken during the second stationary meassurement series.
@@ -130,11 +133,12 @@ def calcElevDeflection(inputFile):
     # Calculations
     deltaRed = delta - CmTc * (Tcs - Tc) / Cmdelta
     linregress = stats.linregress(aoa, delta)
-    Cma = linregress.slope * - Cmdelta
+    Cma = -1* linregress.slope * Cmdelta
 
     return deltaRed, Cma
 
 
+# Calculates the reduced elevator control force for all static2a measurements
 def calcElevContrForce(inputFile):
     '''
     DESCRIPTION:    This function calculates the reduced elevator control force for each meassurement taken during the second stationary measurement series.
@@ -162,46 +166,102 @@ def calcElevContrForce(inputFile):
     return FeRed
 
 
+# Makes the reduced elevator trim curve using static2a measurements
+def plotRedElevTrimCurve(inputFile):
+    '''
+    DESCRIPTION:    Function description
+    ========
+    INPUT:\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+
+    OUTPUT:\n
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
+    '''
+
+    # Import data
+    flightCond2b = imStat.staticFlightCondition(inputFile,'static2a')
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
+    
+    # Obtain values from data
+    VeRed    = np.sort(flightCond2b['VeRed'].to_numpy())
+    deltaRed = np.rad2deg( np.sort( calcElevDeflection(inputFile)[0] ) )
+    Xcg      = np.average(Weight2a['Xcg'].to_numpy())
+    Weight   = np.average(Weight2a['Weight'].to_numpy())
+
+    # Start plotting
+    plt.figure('Elevator Trim Curve',[10,7])
+    plt.title("Reduced Elevator Trim Curve",fontsize=22)
+    plt.plot(VeRed,deltaRed,marker='o')
+
+    plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
+    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
+    plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
+    plt.ylabel(r'$\delta_{e}^{*}$   ($\degree$)',fontsize=16)
+    plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[1],1.05*deltaRed[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props,fontsize=16)
+    plt.grid()
+    return
+
+
+# Makes the actual elevator trim curve against the aoa
 def plotElevTrimCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
     INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
     OUTPUT:\n
-    ... param [Type]:               Parameter description
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
     '''
 
     # Import data
-    flightCond2b = imStat.staticFlightCondition(inputFile,'static2a')
+    static2a_nonSI = imStat.staticMeas(inputFile,'static2a',SI=False)
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
     
     # Obtain values from data
-    VeRed = np.sort(flightCond2b['VeRed'].to_numpy())
-    deltaRed = np.rad2deg( np.sort( calcElevDeflection(inputFile)[0] ) )
+    aoa_deg   = static2a_nonSI['aoa'].to_numpy()
+    delta_deg = static2a_nonSI['delta'].to_numpy()
+    Xcg      = np.average(Weight2a['Xcg'].to_numpy())
+    Weight   = np.average(Weight2a['Weight'].to_numpy())
 
-    plt.title("Reduced Elevator Trim Curve",fontsize=18)
-    plt.plot(VeRed,deltaRed,marker='o')
+    # Calculations
+    linregress = stats.linregress(aoa_deg, delta_deg)
 
-    plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
-    plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
-    plt.ylabel('$\delta_{e}^{*}$   ($\degree$)',fontsize=12)
+    # Start plotting
+    plt.figure('Elevator trim curve',[10,7])
+    plt.title("Elevator Trim Curve",fontsize=22)
+    plt.scatter(aoa_deg,delta_deg)
+    plt.plot(np.sort(aoa_deg),np.sort(aoa_deg)*linregress.slope + linregress.intercept, 'k--')
+    plt.ylim(1.2*max(delta_deg),1.2*min(delta_deg))
+    plt.grid()
+
+    plt.xlim(0.9*np.sort(aoa_deg)[0],1.1*np.sort(aoa_deg)[-1])
+    plt.xlabel(r'$\alpha$   ($\degree$)',fontsize=16)
+    plt.ylabel(r'$\delta_{e}$   ($\degree$)',fontsize=16)
     plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    # plt.text(1.03*np.sort(aoa_deg)[1],1.05*delta_deg[1],'$x_{cg}$ = 7.15 m\nW = 59875 kg',bbox=props,fontsize=16)
+    plt.text(1.03*np.sort(aoa_deg)[1],1.05*delta_deg[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props,fontsize=16)
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.show()
     return
 
 
-def plotElevContrForceCurve(inputFile):
+# Makes the reduced elevator control force curve using static2a measurements
+def plotRedElevContrForceCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
     INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
     OUTPUT:\n
-    ... param [Type]:               Parameter description
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
     '''
 
 
@@ -222,42 +282,18 @@ def plotElevContrForceCurve(inputFile):
     # Calculation
     FeRed = np.sort( Fe*Ws/W )
 
-    plt.title("Reduced Elevator Control Force Curve",fontsize=18)
+    # Start plotting
+    plt.figure('Elevator Force Control Curve',[10,7])
+    plt.title("Reduced Elevator Control Force Curve",fontsize=22)
     plt.plot(VeRed,FeRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel('$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=12)
+    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
     plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
-    plt.ylabel('$F_{e}^{*}$   (N)',fontsize=12)
+    plt.ylabel(r'$F_{e}^{*}$   (kg)',fontsize=16)
     plt.axhline(0,color='k')
 
-    plt.text(1.03*VeRed[2],1.03*FeRed[2],'$x_{cg}$='+str(round(Xcg,2))+' m, $\delta_{t_{e}}$='+str(round(deltaTr,3))+'$\degree$',bbox=dict(fc='none'))
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.text(1.03*VeRed[2],1.05*FeRed[2],'$x_{cg}$ = '+str(round(Xcg,2))+' m\n$\delta_{t_{e}}$ = '+str(round(deltaTr,3))+'$\degree$',bbox=props,fontsize=16)
+    plt.grid()
     return
-
-
-
-
-
-''' Delete this part once understood: to see how functions work '''
-
-# inputFile = 'reference'
-
-# Cmdelta       = calcElevEffectiveness(inputFile)
-# deltaRed, Cma = calcElevDeflection(inputFile) 
-# FeRed         = calcElevContrForce(inputFile)
-
-# print('\nCmdelta =',Cmdelta, '\n')
-# print('reduced elevator deflections:',deltaRed, ', longitudinal stability:', Cma, '\n')
-# print('reduced elevator control force:', FeRed, '\n')
-
-# plt.figure(1)
-# plotElevContrForceCurve('reference')
-# plotElevContrForceCurve('actual')
-# plt.grid()
-
-# plt.figure(2)
-# plotElevTrimCurve('reference')
-# plotElevTrimCurve('actual')
-# plt.grid()
-
-# plt.show()

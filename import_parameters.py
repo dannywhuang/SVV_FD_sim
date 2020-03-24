@@ -1,6 +1,7 @@
 import math 
 
 
+# Contains all constant parameters which holds for all flights
 class parametersStatic:
     def __init__(self):
         # Aircraft geometry:
@@ -15,7 +16,7 @@ class parametersStatic:
         self.A = self.b ** 2 / self.S       # wing aspect ratio [ ]
         self.Ah = self.bh ** 2 / self.Sh    # stabilser aspect ratio [ ]
         self.Vh_V = 1                       # [ ]self.
-        self.ih = -2 * math.pi / 180             # stabiliser angle of incidence [rad]
+        self.ih = -2 * math.pi / 180        # stabiliser angle of incidence [rad]
         self.d = 0.69                       # fan diameter engine [m]
 
         # Standard values:
@@ -35,6 +36,7 @@ class parametersStatic:
         self.CmTc = -0.0064
 
 
+# Contains all constant parameters needed for the weight and xcg calculations which differs for each flight
 class parametersWeight:
     def __init__(self, inputFile):
 

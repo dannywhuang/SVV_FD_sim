@@ -5,31 +5,320 @@ import control.matlab as ml
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rc
-
 import import_dynamic as imDyn
 import import_weight as imWeight
+
 import staticCalc1 as calc1
 import staticCalc2 as calc2
+
+from scipy import interpolate, signal
+
 
 # global constants
 g = 9.81
 
 
-def sampleFunction(param):
+
+def plot_initial_value_Response(StateSpace, motion):
     '''
-    DESCRIPTION:    Function description
+    DESCRIPTION:    Calculate responses using dynamic measurement data
     ========
     INPUT:\n
-    ... param [Type]:               Parameter description\n
-    ... param [Type]:               Parameter description\n
+    ... motion [String]:            'symmetric' or 'asymmetric'
+    ... Statespace [Class]:         Class with symmetric and asymmetric statespace\n
 
     OUTPUT:\n
-    ... param [Type]:               Parameter description
+    ... Plots :              Initial value response
+
     '''
 
-    s = param.b+param.S+param.c
+    # get state matrices using aircraft parameters
+    As = StateSpace.As
+    Bs = StateSpace.Bs
+    Cs = StateSpace.Cs
+    Ds = StateSpace.Ds
+    Aa = StateSpace.Aa
+    Ba = StateSpace.Ba
+    Ca = StateSpace.Ca
+    Da = StateSpace.Da
 
-    return s
+    # create state space models
+    if motion== 'symmetric':
+         ss = ml.ss(As,Bs,Cs,Ds)
+    if motion == 'asymmetric':
+         ss = ml.ss(Aa,Ba,Ca,Da)
+
+    # initial value vector
+    a = np.matrix('1;0;0;0')
+    b = np.matrix('0;1;0;0')
+    c = np.matrix('0;0;1;0')
+    d = np.matrix('0;0;0;1')
+    t = np.arange(0,40,0.001)
+    # response
+    res1 = (ml.initial(ss,T=t,X0=a))[0][:,0]
+    res2 = (ml.initial(ss, T=t, X0=b))[0][:,1]
+    res3 = (ml.initial(ss,T=t,X0=c))[0][:,2]
+    res4 = (ml.initial(ss, T=t, X0=d))[0][:,3]
+
+    fig, axs = plt.subplots(4, 1, figsize=(16, 9), dpi=100)
+    plt.suptitle('Initial value response for  ' + (motion) + ' motion', fontsize=16)
+
+    # plot q and r
+    axs[0].plot(t, res1)
+    axs[0].set_ylabel(r'$\hat{u}$ [-]' if motion== 'symmetric' else r'$\beta$ [rad]', fontsize=12.0)
+    axs[0].grid()
+
+    axs[1].plot(t, res2 )
+    axs[1].set_ylabel(r'$\alpha$ [rad]' if motion== 'symmetric' else r'$\psi$ [rad]', fontsize=12.0)
+    axs[1].grid()
+
+    axs[2].plot(t, res3 )
+    axs[2].set_ylabel(r'$\theta$ [rad]'if motion== 'symmetric' else r'p [rad/s]' , fontsize=12.0)
+    axs[2].grid()
+
+    axs[3].plot(t, res4)
+    axs[3].set_ylabel(r'q [rad/s]'if motion== 'symmetric' else r'q [rad/s]', fontsize=12.0)
+    axs[3].grid()
+
+
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=12)
+    axs[0].tick_params(axis='both', which='minor', labelsize=12)
+    axs[1].tick_params(axis='both', which='major', labelsize=12)
+    axs[1].tick_params(axis='both', which='minor', labelsize=12)
+    axs[2].tick_params(axis='both', which='major', labelsize=12)
+    axs[2].tick_params(axis='both', which='minor', labelsize=12)
+    axs[3].tick_params(axis='both', which='major', labelsize=12)
+    axs[3].tick_params(axis='both', which='minor', labelsize=12)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    plt.show()
+
+def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
+    pa = param
+    dfTime = imDyn.sliceTime('actual', 3480 + 43, 13, SI=True)
+    time = dfTime['time'].to_numpy()
+
+    p = dfTime['Ahrs1_bRollRate'].to_numpy()
+    r = dfTime['Ahrs1_bYawRate'].to_numpy()
+
+    if var == 'p':
+
+        p = p
+
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
+
+        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
+        time_peaks, y_peaks = (time[peakind[1:4]]), (p[peakind[1:4]])
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3480 + 42 and i < 3480 + 42 + 18]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+        for i in fl(np.array(time)):
+            if half_a0 - 0.003 <= i <= half_a0 + 0.003:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'r':
+        p = r
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])  # 2-0
+        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
+
+        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
+        time_peaks, y_peaks = (time[peakind[2:]]), (p[peakind[2:]])
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3480 + 42 and i < 3480 + 42 + 18]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00325 <= i <= half_a0 + 0.00325:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+
+def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
+    pa = param
+
+    dfTime = imDyn.sliceTime('actual', 3120 + 30, 165, SI=True)
+    time = dfTime['time'].to_numpy()
+
+    Vt0 = dfTime['Dadc1_tas'].to_numpy()[0]
+    Vt = dfTime['Dadc1_tas'].to_numpy()
+    ubar = (Vt - Vt0) / Vt0
+
+    a0 = dfTime['vane_AOA'].to_numpy()[0]
+    a_stab = dfTime['vane_AOA'].to_numpy() - a0
+
+    theta0 = a0 - dfTime['Ahrs1_Pitch'].to_numpy()[
+        0]  # using theta0=gamma0 (see FD lectures notes page 95) and gamma = alpha-theta
+    theta_stab = dfTime['Ahrs1_Pitch'].to_numpy() - theta0
+
+    q = dfTime['Ahrs1_bPitchRate'].to_numpy()
+
+    if var == 'q':
+        p = q
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[11] - f.roots()[9])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3120 + 30 and i < 3432]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+        for i in fl(np.array(time)):
+            if half_a0 - 0.000004 <= i <= half_a0 + 0.000004:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'ubar':
+        p = -ubar
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00001 <= i <= half_a0 + 0.00001:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+    if var == 'theta_stab':
+        p = theta_stab
+        p = p - p[0]
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[4] - f.roots()[2])
+        imag = 2 * np.pi * pa.c / (pa.V0 * pp)
+
+        peakind, _ = signal.find_peaks(p, width=40)
+        time_peaks, y_peaks = (time[peakind[1:]]), (p[peakind[1:]])
+
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.00005 <= i <= half_a0 + 0.00005:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+        re = np.log(0.5) * pa.c / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
+
+def damp(re,im,param,motion):
+    '''
+      DESCRIPTION:    Calculates damping coefficient and eigenfrequency
+      ========
+      INPUT:\n
+      ... re     :     real part of eigenvalue
+      ... im     :     imaginary part of eigenvalue
+      ... param  :     parameters for the eigenmotion
+      ... motion :     motion type: 'dutchroll' or 'phugoid'
+      OUTPUT:\n
+      ... zeta   :     Damping coefficient
+      ... wn     :     Natural frequency
+      ... w0     :     Angular frequency
+      '''
+    #param = p
+    p     = ParametersOld
+    if motion=='dutchroll':
+        zeta  = -re/(np.sqrt(re**2+ im**2))
+        w0    = (np.sqrt(re**2+ im**2))*(p.V0/p.b)
+        wn    = w0*np.sqrt(1-zeta**2)
+    if motion=='phugoid':
+        zeta = -re / (np.sqrt(re ** 2 + im ** 2))
+        w0 = (np.sqrt(re ** 2 + im ** 2)) * (p.V0 / p.c)
+        wn = w0 * np.sqrt(1 - zeta ** 2)
+    if motion=='dutchroll-sim':
+        w0   = p.V0/p.b *np.sqrt(p.Cnb/(2*p.mub*p.KZ2))
+        zeta = -p.Cnr/(4*np.sqrt(2*p.mub*p.KZ2*p.Cnb))
+        wn = "boo"
+
+    return zeta, w0,wn
+
+
+def calcDampFrequency(eig,param,type):
+    '''
+      DESCRIPTION:    Calculates damping coefficient and eigenfrequency
+      ========
+      INPUT:\n
+      ... re     :     real part of eigenvalue
+      ... im     :     imaginary part of eigenvalue
+      ... param  :     parameters for the eigenmotion
+      ... motion :     motion type: 'dutchroll' or 'phugoid'
+      OUTPUT:\n
+      ... zeta   :     Damping coefficient
+      ... wn     :     Natural frequency
+      ... w0     :     Angular frequency
+      '''
+    #param = p
+    re = np.real(eig)
+    im = np.imag(eig)
+
+    if type=='symmetric':
+        Thalf = ((np.log(0.5))/re)*(param.c / param.V0)
+        if im==0:
+            P = None
+        else:
+            P = ((2 * np.pi) / im) * (param.c / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.b)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    elif type=='asymmetric':
+        Thalf = ((np.log(0.5)) / re) * (param.b / param.V0)
+        if im==0:
+            P = None
+        else:
+            P = ((2 * np.pi) / im) * (param.b / param.V0)
+        zeta = -re / (np.sqrt(re**2 + im**2))
+        w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.c)
+        wn = w0 * np.sqrt(1 - zeta**2)
+    else:
+        raise ValueError("Choose symmetric or asymmetric as type")
+
+    return Thalf,P,zeta, w0, wn
 
 
 def calcEigenShortPeriod(param):        #Verified by Danny
@@ -40,7 +329,7 @@ def calcEigenShortPeriod(param):        #Verified by Danny
     ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
     OUTPUT:\n
-    ... lambdac [Array]:            Array with eigen values for analytical model short period motion
+    ... lambdac [Array]:             Array with class EigenValue for analytical model short period motion
     '''
     # Short period
     A = 2*param.muc*param.KY2*(2*param.muc-param.CZadot)
@@ -49,7 +338,11 @@ def calcEigenShortPeriod(param):        #Verified by Danny
     p = [A,B,C]
     lambdac = np.roots(p)
 
-    return lambdac
+    EigLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs,param,'symmetric'))
+
+    return EigLst
 
 
 def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot different from state space eigenvalues
@@ -78,7 +371,15 @@ def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot differe
     p2 = [A2,B2,C2]
     lambdacSimp = np.roots(p2)
 
-    return lambdac, lambdacSimp
+    EigLst = []
+    EigSimpLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs, param, 'symmetric'))
+
+    for egs2 in lambdacSimp:
+        EigSimpLst.append(EigenValue(egs2, param, 'symmetric'))
+
+    return EigLst, EigSimpLst
 
 
 def calcEigenDutchRoll(param): # Verified by Danny
@@ -103,7 +404,15 @@ def calcEigenDutchRoll(param): # Verified by Danny
     C2 = -param.Cnb
     lambdacSimp = np.roots([A2, B2, C2])
 
-    return lambdac, lambdacSimp
+    EigLst = []
+    EigSimpLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs, param, 'asymmetric'))
+
+    for egs2 in lambdacSimp:
+        EigSimpLst.append(EigenValue(egs2, param, 'asymmetric'))
+
+    return EigLst, EigSimpLst
 
 
 def calcEigenAperRoll(param):   # Verified by Danny
@@ -120,7 +429,9 @@ def calcEigenAperRoll(param):   # Verified by Danny
     # Aperiodic Roll
     lambdac = param.Clp/(4*param.mub*param.KX2)
 
-    return lambdac
+    Eig = EigenValue(lambdac, param, 'asymmetric')
+
+    return Eig
 
 
 def calcEigenSpiral(param): # Verified by Danny
@@ -136,8 +447,9 @@ def calcEigenSpiral(param): # Verified by Danny
 
     # Spiral
     lambdac = ((2*param.CL*(param.Clb*param.Cnr-param.Cnb*param.Clr))/(param.Clp*(param.CYb*param.Cnr+4*param.mub*param.Cnb)-param.Cnp*(param.CYb*param.Clr+4*param.mub*param.Clb)))
+    Eig = EigenValue(lambdac, param, 'asymmetric')
 
-    return lambdac
+    return Eig
 
 
 def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
@@ -311,7 +623,14 @@ def stateSpace(param):
     Eigs = np.linalg.eig(As)[0]*(param.c/param.V0)
     Eiga = np.linalg.eig(Aa)[0]*(param.b/param.V0)
 
-    ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga) #class
+    EigsLst = []
+    EigaLst = []
+    for egs in Eigs:
+        EigsLst.append(EigenValue(egs,param,'symmetric'))
+    for ega in Eiga:
+        EigaLst.append(EigenValue(ega,param,'asymmetric'))
+
+    ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,EigsLst,EigaLst) #class
 
     return ss
 
@@ -459,7 +778,18 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
     return
 
 
+class EigenValue:
+    def __init__(self,eig,param,type):
+        self.eig = eig
+        self.Thalf = calcDampFrequency(eig,param,type)[0]
+        self.P = calcDampFrequency(eig,param,type)[1]
+        self.zeta =  calcDampFrequency(eig,param,type)[2]
+        self.w0 =  calcDampFrequency(eig,param,type)[3]
+        self.wn =  calcDampFrequency(eig,param,type)[4]
+
+
 class StateSpace:
+    # Eigs and Eiga are a list of classes EigenValue
     def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
         self.As = As
         self.Bs = Bs
@@ -471,7 +801,6 @@ class StateSpace:
         self.Da = Da
         self.Eigs = Eigs
         self.Eiga = Eiga
-
 
 class StartTime:
     def __init__(self,fileName):
@@ -510,7 +839,6 @@ class DurationTime:
             self.tAperRoll = 18
             self.tSpiral = 89
 
-
 class ParametersOld:
     '''
         DESCRIPTION:    Class containing all constant parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
@@ -546,10 +874,16 @@ class ParametersOld:
 
         self.m =   dfMassSliced['Weight'].to_numpy()[0]/9.81
 
+
+
+        aeroCoeff = calc1.calcAeroCoeff(fileName)
         # aerodynamic properties
-        self.e = 0.8 # Oswald factor [ ]
-        self.CD0 = 0.04 # Zero lift drag coefficient [ ]
-        self.CLa = 5.084 # Slope of CL-alpha curve [ ]
+        self.e = aeroCoeff[2] # Oswald factor [ ]
+        self.CD0 = aeroCoeff[3] # Zero lift drag coefficient [ ]
+        self.CLa = aeroCoeff[0] # Slope of CL-alpha curve [ ]
+        # self.e = 0.8 # Oswald factor [ ]
+        # self.CD0 = 0.04 # Zero lift drag coefficient [ ]
+        # self.CLa = 5.084 # Slope of CL-alpha curve [ ]
 
         # Longitudinal stability
         self.Cmde = calc2.calcElevEffectiveness(fileName)
@@ -645,14 +979,13 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-
 def main():
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
         inputFile = input("Invalid input: choose between 'reference' or 'actual'")
     showPlot = input("\nDo you want nice plots? 'Yes' or 'No': ")
     while showPlot not in ['Yes', 'No','yes','no']:
-        showPlot = input("Invalid input: choose between 'Yes' or 'No'")
+         showPlot = input("Invalid input: choose between 'Yes' or 'No'")
     doSimulate = input("\nDo you want to plot the simulation? 'Yes' or 'No': ")
     while doSimulate not in ['Yes', 'No','yes','no']:
         doSimulate = input("Invalid input: choose between 'Yes' or 'No'")
@@ -687,30 +1020,51 @@ def main():
     eigAperRoll = calcEigenAperRoll(paramAperRoll)
     eigSpiral = calcEigenSpiral(paramSpiral)
 
-    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2:])
-    print("eigenvalues analytical Phugoid:",eigPhugoid)
-    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
+    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2].eig,ssPhugoid.Eigs[3].eig)
+    print("periods ss Phugoid",ssPhugoid.Eigs[2].P,ssPhugoid.Eigs[3].P)
+    print("Thalf ss Phugoid",ssPhugoid.Eigs[2].Thalf,ssPhugoid.Eigs[3].Thalf,"\n")
+    print("eigenvalues analytical Phugoid:",eigPhugoid[0].eig,eigPhugoid[1].eig)
+    print("periods analytical Phugoid",eigPhugoid[0].P,eigPhugoid[1].P)
+    print("Thalf analytical Phugoid",eigPhugoid[0].Thalf,eigPhugoid[1].Thalf,"\n")
+    # print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp[0].eig,eigPhugoidSimp[1].eig,"\n")
 
-    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
-    print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
+    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[0].eig,ssShortPeriod.Eigs[1].eig)
+    print("periods ss Short Period",ssShortPeriod.Eigs[0].P,ssShortPeriod.Eigs[1].P)
+    print("Thalf ss Short Period",ssShortPeriod.Eigs[0].Thalf,ssShortPeriod.Eigs[1].Thalf,"\n")
+    print("eigenvalues analytical Short Period:", eigShortPeriod[0].eig,eigShortPeriod[1].eig)
+    print("periods analytical Short Period",eigShortPeriod[0].P,eigShortPeriod[1].P)
+    print("Thalf analytical Short Period",eigShortPeriod[0].Thalf,eigShortPeriod[1].Thalf,"\n")
 
-    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
-    print("eigenvalues analytical dutch roll:", eigDutchRoll)
-    print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
+    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1].eig,ssDutchRoll.Eiga[2].eig)
+    print("periods ss dutch roll",ssDutchRoll.Eiga[1].P,ssDutchRoll.Eiga[2].P)
+    print("Thalf ss dutch roll",ssDutchRoll.Eiga[1].Thalf,ssDutchRoll.Eiga[2].Thalf,"\n")
+    print("eigenvalues analytical dutch roll:", eigDutchRoll[0].eig,eigDutchRoll[1].eig)
+    print("periods analytical dutch roll",eigDutchRoll[0].P,eigDutchRoll[1].P)
+    print("Thalf analytical dutch roll",eigDutchRoll[0].Thalf,eigDutchRoll[1].Thalf,"\n")
+    # print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp[0].eig,eigDutchRollSimp[1].eig,"\n")
 
-    print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
-    print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
-    print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp,"\n")
+    # print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1].eig,ssDutchRollYD.Eiga[2].eig)
+    # print("eigenvalues analytical dutch roll YD:", eigDutchRollYD[0].eig,eigDutchRollYD[1].eig)
+    # print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp[0].eig,eigDutchRollYDSimp[1].eig,"\n")
 
-    print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0])
-    print("eigenvalue analytical damped aperiodic roll:",eigAperRoll,"\n")
+    print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0].eig)
+    print("periods ss Short Period",ssAperRoll.Eiga[0].P)
+    print("Thalf ss Short Period",ssAperRoll.Eiga[0].Thalf,"\n")
+    print("eigenvalue analytical damped aperiodic roll:",eigAperRoll.eig)
+    print("periods analytical dutch roll",eigAperRoll.P)
+    print("Thalf analytical dutch roll",eigAperRoll.Thalf,"\n")
 
-    print("eigenvalue ss spiral:", ssSpiral.Eiga[3])
-    print("eigenvalue analytical spiral:" ,eigSpiral)
+    print("eigenvalue ss spiral:", ssSpiral.Eiga[3].eig)
+    print("periods ss spiral",ssSpiral.Eiga[3].P)
+    print("Thalf ss spiral",ssSpiral.Eiga[3].Thalf,"\n")
+    print("eigenvalue analytical spiral:" ,eigSpiral.eig)
+    print("periods analytical spiral",eigSpiral.P)
+    print("Thalf analytical spiral",eigSpiral.Thalf,"\n")
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
     #-----------------------------------------------------
+
     if showPlot =='Yes' or showPlot =='yes':
         plotMotionsTest(paramPhugoid,inputFile,tStart.tPhugoid,tDuration.tPhugoid,ssPhugoid,'phugoid',plotNumerical,SI=True)  # plot from reference data for phugoid
         plotMotionsTest(paramShortPeriod, inputFile, tStart.tShortPeriod, tDuration.tShortPeriod, ssShortPeriod, 'short period', plotNumerical, SI=True)  # plot from reference data for short period
@@ -718,6 +1072,25 @@ def main():
         plotMotionsTest(paramDutchRollYD,inputFile,tStart.tDutchRollYD,tDuration.tDutchRollYD,ssDutchRollYD,'dutch roll yd',plotNumerical,SI=True)
         plotMotionsTest(paramAperRoll, inputFile, tStart.tAperRoll, tDuration.tAperRoll, ssAperRoll, 'aper roll', plotNumerical,SI=True)
         plotMotionsTest(paramSpiral, inputFile, tStart.tSpiral, tDuration.tSpiral, ssSpiral, 'spiral', plotNumerical,SI=True)
+
+
+
+    # re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
+    # re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
+    # re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
+    # re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
+    # re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
+    #
+    # print("eigenv response Phugoid for ubar:", re,'i',im)
+    # print("eigenv response Phugoid for q:", re1, 'i', im1)
+    # print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
+    # print("eigenv response Dutchroll for p:", re3, 'i', im3)
+    # print("eigenv response Dutchroll for r:", re4, 'i', im4)
+
+    #plot response to initial value
+
+    plot_initial_value_Response(ssPhugoid, 'symmetric')
+    plot_initial_value_Response(ssDutchRoll, 'asymmetric')
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
