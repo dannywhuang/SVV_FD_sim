@@ -5,7 +5,6 @@ import staticCalc2 as calc2
 
 
 def main():
-
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
         inputFile = input("\nInvalid input: choose between 'reference' or 'actual'")
