@@ -266,21 +266,17 @@ def plotRedElevContrForceCurve(inputFile):
 
 
     # Import data
-    param        = imPar.parametersStatic()
     static2a     = imStat.staticMeas(inputFile,'static2a')
     flightCond2a = imStat.staticFlightCondition(inputFile,'static2a')
     Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
     
     # Obtain values from data
-    Ws    = param.Ws
     VeRed = np.sort( flightCond2a['VeRed'].to_numpy() )
-    Fe    = static2a['Fe'].to_numpy()
-    W     = Weight2a['Weight'].to_numpy()
     Xcg   = np.average(Weight2a['Xcg'].to_numpy())
     deltaTr = np.rad2deg(np.average(static2a['deltaTr']))
 
     # Calculation
-    FeRed = np.sort( Fe*Ws/W )
+    FeRed = np.sort(calcElevContrForce(inputFile))
 
     # Start plotting
     plt.figure('Elevator Force Control Curve',[10,7])
