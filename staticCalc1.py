@@ -111,6 +111,8 @@ def plotLift(inputFile):
     plt.text(1.03*aoa_deg[1],1.05*CL[-2],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props,fontsize=16)
     plt.grid()
 
+    return
+
 
 def plotPolar(inputFile):
     '''
