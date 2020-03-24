@@ -18,10 +18,10 @@ def main():
     # =============================
     # Aerodynamic parameters
     print("\n ============ Aerodynamic Parameters ============")
-    CLa  = calc1.calcAeroCoeff(inputFile,'static1')[0]
-    aoa0 = calc1.calcAeroCoeff(inputFile,'static1')[1]
-    e    = calc1.calcAeroCoeff(inputFile,'static1')[2]
-    CD0  = calc1.calcAeroCoeff(inputFile,'static1')[3]
+    CLa  = calc1.calcAeroCoeff(inputFile)[0]
+    aoa0 = calc1.calcAeroCoeff(inputFile)[1]
+    e    = calc1.calcAeroCoeff(inputFile)[2]
+    CD0  = calc1.calcAeroCoeff(inputFile)[3]
 
     print("\nThe lift curve slope for the "+inputFile+" data equals: CLa = ",round(CLa,3))
     print("\nThe zero-lift angle of attack for the " + inputFile + " data equals: aoa0 = ", round(aoa0,3))
