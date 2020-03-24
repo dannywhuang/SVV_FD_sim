@@ -5,20 +5,23 @@ import staticCalc2 as calc2
 
 
 def main():
-
     inputFile = input("\nChoose to evaluate the 'reference' or 'actual' data: ")
     while inputFile not in ['reference', 'actual']:
-        inputFile = input("Invalid input: choose between 'reference' or 'actual'")
+        inputFile = input("\nInvalid input: choose between 'reference' or 'actual'")
+
+    plots = input("\nDo you want to see plots [y/n]: ")
+    while plots not in ['y','n']:
+        plots = input("\nInvalid input: choose between 'y' or 'n'")
 
     # =============================
     # Aircraft Parameters
     # =============================
     # Aerodynamic parameters
     print("\n ============ Aerodynamic Parameters ============")
-    CLa  = calc1.calcAeroCoeff(inputFile,'static1')[0]
-    aoa0 = calc1.calcAeroCoeff(inputFile,'static1')[1]
-    e    = calc1.calcAeroCoeff(inputFile,'static1')[2]
-    CD0  = calc1.calcAeroCoeff(inputFile,'static1')[3]
+    CLa  = calc1.calcAeroCoeff(inputFile)[0]
+    aoa0 = calc1.calcAeroCoeff(inputFile)[1]
+    e    = calc1.calcAeroCoeff(inputFile)[2]
+    CD0  = calc1.calcAeroCoeff(inputFile)[3]
 
     print("\nThe lift curve slope for the "+inputFile+" data equals: CLa = ",round(CLa,3))
     print("\nThe zero-lift angle of attack for the " + inputFile + " data equals: aoa0 = ", round(aoa0,3))
@@ -36,29 +39,19 @@ def main():
     # =============================
     # Aircraft Plots
     # =============================
-    # Aerodynamic plots
-    print("\n ============ Aerodynamic Plots ============")
-    calc1.plotPolar(inputFile)
+    if plots == 'y':
+        # Aerodynamic plots
+        calc1.plotLift(inputFile)
+        calc1.plotPolar(inputFile)
 
-    # Stability plots
-    print("\n ============ Stability Plots ============")
-    plt.figure('Elevator Trim Curve',[10,7])
-    calc2.plotElevTrimCurve(inputFile)
+        # Stability plots
+        calc2.plotRedElevTrimCurve(inputFile)
+        calc2.plotRedElevContrForceCurve(inputFile)
 
-    plt.figure('Elevator Force Control Curve',[10,7])
-    calc2.plotElevContrForceCurve(inputFile)
+        print("\nTot de volgende keer!!!\n")
 
-    plt.show()
-
-    # =============================
-    # Code to run mainStatic again
-    # =============================
-    question = input("\nDo you want to run the program again? [y/n]: ")
-    while question not in ['y','n']:
-        question = input("\nInvalid response, choose between 'y' or 'n'")
-    if question == 'y':
-        main()
-    if question == 'n':
+        plt.show()
+    elif plots == 'n':
         print('\nTot de volgende keer!!!\n')
     return
 
