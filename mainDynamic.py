@@ -838,7 +838,7 @@ class ParametersOld:
 
 
 
-        aeroCoeff = calc1.calcAeroCoeff(fileName,'static1')
+        aeroCoeff = calc1.calcAeroCoeff(fileName)
         # aerodynamic properties
         self.e = aeroCoeff[2] # Oswald factor [ ]
         self.CD0 = aeroCoeff[3] # Zero lift drag coefficient [ ]
