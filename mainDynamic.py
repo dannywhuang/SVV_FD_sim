@@ -196,7 +196,7 @@ def plotVerificationStepResponse(StateSpace, motion):
     Ba = StateSpace.Ba
     Ca = StateSpace.Ca
     Da = StateSpace.Da
-    t = np.arange(0, 400, 0.001)
+    t = np.arange(0, 400, 0.1)
     # create state space models
     if motion== 'symmetric':
         ss = ml.ss(As,Bs,Cs,Ds)
@@ -279,18 +279,14 @@ def plotVerificationImpulseResponse(StateSpace, motion):
     # create state space models
     if motion== 'symmetric':
         ss = ml.ss(As,Bs,Cs,Ds)
-        u = np.ones(len(t))
     if motion == 'asymmetric':
         ss = ml.ss(Aa,Ba,Ca,Da)
-        u1 = np.ones(len(t))
-        u2 =np.ones(len(t))
-        u = np.vstack((u1, u2)).T
 
     # initial value vector
     x0 = np.matrix('0;0;0;0')
 
     # response
-    YoutS, tS, XoutS = ml.lsim(ss, u, t, x0)
+    YoutS, tS = ml.impulse(ss, T=t, X0=x0)
     res1 = YoutS[:,0]
     res2 = YoutS[:,1]
     res3 = YoutS[:,2]
@@ -724,7 +720,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     dfTime = imDyn.sliceTime(fileName,t0,duration,SI)
     time = dfTime['time']
     delta_a = dfTime['delta_a'].to_numpy()-dfTime['delta_a'].to_numpy()[0]
-    delta_e = dfTime['delta_e'].to_numpy()
+    delta_e = dfTime['delta_e'].to_numpy()-dfTime['delta_e'].to_numpy()[0]
     delta_r = dfTime['delta_r'].to_numpy()-dfTime['delta_r'].to_numpy()[0]
 
     # input variables
@@ -734,7 +730,7 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     a0 = dfTime['vane_AOA'].to_numpy()[0]
     a_stab0 = dfTime['vane_AOA'].to_numpy()[0] - a0
 
-    theta0 = a0 - dfTime['Ahrs1_Pitch'].to_numpy()[0]
+    theta0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]
     theta_stab0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]-theta0
     q0 = dfTime['Ahrs1_bPitchRate'].to_numpy()[0]*(param.c/param.V0)
 
@@ -900,7 +896,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         ubar =  (Vt-Vt0)/Vt0
         a0 = dfTime['vane_AOA'].to_numpy()[0]
         a_stab = dfTime['vane_AOA'].to_numpy()-a0
-        theta0 = a0-dfTime['Ahrs1_Pitch'].to_numpy()[0]     # using theta0=gamma0 (see FD lectures notes page 95) and gamma = alpha-theta
+        theta0 = dfTime['Ahrs1_Pitch'].to_numpy()[0]     # using theta0=gamma0 (see FD lectures notes page 95) and gamma = alpha-theta
         theta_stab = dfTime['Ahrs1_Pitch'].to_numpy()-theta0
         q = dfTime['Ahrs1_bPitchRate'].to_numpy()
         delta_e = dfTime['delta_e'].to_numpy()
@@ -914,7 +910,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         for ax in axs[:, 2]:
             ax.remove()
         axbig = fig.add_subplot(gs[:, 2])
-        axbig.plot(time,delta_e,color="green")
+        axbig.plot(time,delta_e-delta_e[0],color="green")
         axbig.grid()
         axbig.tick_params(axis='both', which='major', labelsize=13)
         axbig.tick_params(axis='both', which='minor', labelsize=13)
@@ -988,8 +984,8 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         axs[2].set_ylabel(r'$r$ [rad/s]', fontsize=14.0)
         axs[2].grid()
 
-        axs[3].plot(time,dfTime['delta_a'].to_numpy()-dfTime['delta_a'].to_numpy()[0],label="Aileron",color="red")
-        axs[3].plot(time,dfTime['delta_r'].to_numpy()-dfTime['delta_r'].to_numpy()[0],label="Rudder",color="indigo")
+        axs[3].plot(time,-(dfTime['delta_a'].to_numpy()-dfTime['delta_a'].to_numpy()[0]),label="Aileron",color="red")
+        axs[3].plot(time,-(dfTime['delta_r'].to_numpy()-dfTime['delta_r'].to_numpy()[0]),label="Rudder",color="indigo")
         axs[3].set_ylabel(r'$\delta_{a},\delta_{r}$ [rad]', fontsize=14.0)
         axs[3].set_xlabel('time [s]', fontsize=14.0)
         axs[3].grid()
@@ -1043,6 +1039,7 @@ class StateSpace:
         self.Da = Da
         self.Eigs = Eigs
         self.Eiga = Eiga
+
 
 class StartTime:
     def __init__(self,fileName):
@@ -1473,8 +1470,10 @@ def main():
 
     # plot_initial_value_Response(ssPhugoid, 'symmetric')
     # plot_initial_value_Response(ssDutchRoll, 'asymmetric')
-    plotVerificationStepResponse(ssPhugoid,'symmetric')
-    plotVerificationStepResponse(ssDutchRoll,'asymmetric')
+    # plotVerificationStepResponse(ssPhugoid,'symmetric')
+    # plotVerificationStepResponse(ssDutchRoll,'asymmetric')
+    # plotVerificationImpulseResponse(ssPhugoid,'symmetric')
+    # plotVerificationImpulseResponse(ssDutchRoll,'asymmetric')
 
 if __name__ == "__main__":
     #this is run when script is started, dont change

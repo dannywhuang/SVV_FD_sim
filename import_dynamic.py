@@ -221,4 +221,4 @@ def plotData(inputFile,t0,duration):
 
 #matToCSV('actual')
 # convertDynToSI('actual')
-#plotData('actual',3780,160)
+# plotData('actual',3353 -10,20)
