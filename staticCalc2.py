@@ -194,9 +194,9 @@ def plotRedElevTrimCurve(inputFile):
     plt.plot(VeRed,deltaRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
+    plt.xlabel(r'$V_{e}^{*}$   [$\dfrac{m}{s}$]',fontsize=16)
     plt.ylim(1.2*deltaRed[-1],1.2*deltaRed[0])
-    plt.ylabel(r'$\delta_{e}^{*}$   ($\degree$)',fontsize=16)
+    plt.ylabel(r'$\delta_{e}^{*}$   [$\degree$]',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
@@ -239,8 +239,8 @@ def plotElevTrimCurve(inputFile):
     plt.grid()
 
     plt.xlim(0.9*np.sort(aoa_deg)[0],1.1*np.sort(aoa_deg)[-1])
-    plt.xlabel(r'$\alpha$   ($\degree$)',fontsize=16)
-    plt.ylabel(r'$\delta_{e}$   ($\degree$)',fontsize=16)
+    plt.xlabel(r'$\alpha$   [$\degree$]',fontsize=16)
+    plt.ylabel(r'$\delta_{e}$   [$\degree$]',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
@@ -284,9 +284,9 @@ def plotRedElevContrForceCurve(inputFile):
     plt.plot(VeRed,FeRed,marker='o')
 
     plt.xlim(0.9*VeRed[0],1.1*VeRed[-1])
-    plt.xlabel(r'$V_{e}^{*}$   ($\dfrac{m}{s}$)',fontsize=16)
+    plt.xlabel(r'$V_{e}^{*}$   [$\dfrac{m}{s}$]',fontsize=16)
     plt.ylim(1.2*FeRed[-1],1.2*FeRed[0])
-    plt.ylabel(r'$F_{e}^{*}$   (kg)',fontsize=16)
+    plt.ylabel(r'$F_{e}^{*}$   [N]',fontsize=16)
     plt.axhline(0,color='k')
 
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
