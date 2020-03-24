@@ -216,7 +216,6 @@ def staticFlightCondition(inputFile, dataSet):
 
     # Import data
     meas  = staticMeas(inputFile, dataSet, SI=True)
-
     param = imPar.parametersStatic()
     staticWeight = imWeight.calcWeightCG(inputFile,dataSet)
 
@@ -231,7 +230,7 @@ def staticFlightCondition(inputFile, dataSet):
     R     = param.R
 
     Vi       = meas['Vi'].to_numpy()
-    Vc       = Vi - 2
+    Vc       = Vi - 2*0.514444444
     TempMeas = meas['TAT'].to_numpy()
     hp       = meas['hp'].to_numpy()
     W        = staticWeight['Weight'].to_numpy()

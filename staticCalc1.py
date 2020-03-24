@@ -8,7 +8,7 @@ import import_static as imStat
 import import_weight as imWeight
 
 
-def calcAeroCoeff(inputFile, dataSet):
+def calcAeroCoeff(inputFile):
     '''
     DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
     ========
@@ -24,11 +24,11 @@ def calcAeroCoeff(inputFile, dataSet):
     # Import data
 
     param            = imPar.parametersStatic()
-    static           = imStat.staticMeas(inputFile, dataSet)
-    staticNotSI      = imStat.staticMeas(inputFile, dataSet, SI=False)
-    staticFlightCond = imStat.staticFlightCondition(inputFile, dataSet)
-    staticTp         = imStat.staticThrust(inputFile, dataSet)
-    staticWeight     = imWeight.calcWeightCG(inputFile, dataSet)
+    static           = imStat.staticMeas(inputFile, 'static1')
+    staticNotSI      = imStat.staticMeas(inputFile, 'static1', SI=False)
+    staticFlightCond = imStat.staticFlightCondition(inputFile, 'static1')
+    staticTp         = imStat.staticThrust(inputFile, 'static1')
+    staticWeight     = imWeight.calcWeightCG(inputFile, 'static1')
 
     # Obtain vales from data
     S   = param.S
@@ -43,26 +43,18 @@ def calcAeroCoeff(inputFile, dataSet):
     # Calculations
     CL = W / (0.5 * rho * Vt**2 * S)
     CD = Tp / (0.5 * rho * Vt**2 * S)
-    
     aeroCoeff = {}
+    CL_aoa = stat.linregress(aoa_rad,CL)
+    CD_CL2 = stat.linregress(CL**2,CD)
 
-    if dataSet == 'static1':
-        CL_aoa = stat.linregress(aoa_rad,CL)
-        CD_CL2 = stat.linregress(CL**2,CD)
+    CLa = CL_aoa.slope
+    aoa0 = -CL_aoa.intercept / CLa
+    e = 1/(np.pi*A*CD_CL2.slope)
+    CD0 = CD_CL2.intercept
 
-        CLa = CL_aoa.slope
-        aoa0 = -CL_aoa.intercept / CLa
-        e = 1/(np.pi*A*CD_CL2.slope)
-        CD0 = CD_CL2.intercept
-
-        dataNames = ['CL','CD']
-        for name in dataNames:
-            aeroCoeff[name] = locals()[name]  
-
-    else:
-        dataNames = ['CL','CD']
-        for name in dataNames:
-            aeroCoeff[name] = locals()[name]
+    dataNames = ['CL','CD']
+    for name in dataNames:
+        aeroCoeff[name] = locals()[name]
     aeroCoeff = pd.DataFrame(data=aeroCoeff)
 
     return CLa, aoa0, e, CD0, aeroCoeff
@@ -81,7 +73,7 @@ def plotLift(inputFile):
     # Import the data
     param = imPar.parametersStatic()
     static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
-    aeroCoeff = calcAeroCoeff(inputFile,'static1')[-1]
+    aeroCoeff = calcAeroCoeff(inputFile)[-1]
     static1FlightCond = imStat.staticFlightCondition(inputFile, 'static1')
 
     # Get the required parameters
@@ -134,7 +126,7 @@ def plotPolar(inputFile):
     # Import the data
     param = imPar.parametersStatic()
     static1NotSI = imStat.staticMeas(inputFile, 'static1', SI=False)
-    aeroCoeff = calcAeroCoeff(inputFile,'static1')[-1]
+    aeroCoeff = calcAeroCoeff(inputFile)[-1]
     static1FlightCond = imStat.staticFlightCondition(inputFile, 'static1')
 
     # Get the required parameters

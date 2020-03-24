@@ -135,29 +135,6 @@ def calcElevDeflection(inputFile):
     linregress = stats.linregress(aoa, delta)
     Cma = -1* linregress.slope * Cmdelta
 
-    # #--
-    # aoa = np.rad2deg(aoa)
-    # linregress = stats.linregress(aoa, delta)
-
-    # plt.figure('Elevator trim curve',[10,7])
-    # plt.scatter(aoa,delta)
-    # plt.plot(np.sort(aoa),np.sort(aoa)*linregress.slope + linregress.intercept, 'k--')
-    # plt.ylim(1.2*max(delta),1.2*min(delta))
-    # plt.grid()
-
-    # plt.title("Elevator Trim Curve",fontsize=22)
-
-    # plt.xlim(0.9*np.sort(aoa)[0],1.1*np.sort(aoa)[-1])
-    # plt.xlabel('aoa   ($\degree$)',fontsize=16)
-    # plt.ylabel('$\delta_{e}$   ($\degree$)',fontsize=16)
-    # plt.axhline(0,color='k')
-
-    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # plt.text(1.03*np.sort(aoa)[1],1.05*delta[1],'$x_{cg}$ = 7.15 m\nW = 59875 kg',bbox=props,fontsize=16)
-
-    # props = dict(boxstyle='round', facecolor='white', alpha=0.5)
-    # plt.show()
-
     return deltaRed, Cma
 
 
@@ -190,7 +167,7 @@ def calcElevContrForce(inputFile):
 
 
 # Makes the reduced elevator trim curve using static2a measurements
-def plotElevTrimCurve(inputFile):
+def plotRedElevTrimCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
@@ -228,8 +205,55 @@ def plotElevTrimCurve(inputFile):
     return
 
 
+# Makes the actual elevator trim curve against the aoa
+def plotElevTrimCurve(inputFile):
+    '''
+    DESCRIPTION:    Function description
+    ========
+    INPUT:\n
+    ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
+
+    OUTPUT:\n
+    ... None, but running this function creates a figure which can be displayed by calling plt.plot()
+    '''
+
+    # Import data
+    static2a_nonSI = imStat.staticMeas(inputFile,'static2a',SI=False)
+    Weight2a     = imWeight.calcWeightCG(inputFile, 'static2a')
+    
+    # Obtain values from data
+    aoa_deg   = static2a_nonSI['aoa'].to_numpy()
+    delta_deg = static2a_nonSI['delta'].to_numpy()
+    Xcg      = np.average(Weight2a['Xcg'].to_numpy())
+    Weight   = np.average(Weight2a['Weight'].to_numpy())
+
+    # Calculations
+    linregress = stats.linregress(aoa_deg, delta_deg)
+
+    # Start plotting
+    plt.figure('Elevator trim curve',[10,7])
+    plt.title("Elevator Trim Curve",fontsize=22)
+    plt.scatter(aoa_deg,delta_deg)
+    plt.plot(np.sort(aoa_deg),np.sort(aoa_deg)*linregress.slope + linregress.intercept, 'k--')
+    plt.ylim(1.2*max(delta_deg),1.2*min(delta_deg))
+    plt.grid()
+
+    plt.xlim(0.9*np.sort(aoa_deg)[0],1.1*np.sort(aoa_deg)[-1])
+    plt.xlabel(r'$\alpha$   ($\degree$)',fontsize=16)
+    plt.ylabel(r'$\delta_{e}$   ($\degree$)',fontsize=16)
+    plt.axhline(0,color='k')
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    # plt.text(1.03*np.sort(aoa_deg)[1],1.05*delta_deg[1],'$x_{cg}$ = 7.15 m\nW = 59875 kg',bbox=props,fontsize=16)
+    plt.text(1.03*np.sort(aoa_deg)[1],1.05*delta_deg[1],'$x_{cg}$ = '+str(round(Xcg,2))+' m\nW = '+str(int(round(Weight,0)))+' kg',bbox=props,fontsize=16)
+
+    props = dict(boxstyle='round', facecolor='white', alpha=0.5)
+    plt.show()
+    return
+
+
 # Makes the reduced elevator control force curve using static2a measurements
-def plotElevContrForceCurve(inputFile):
+def plotRedElevContrForceCurve(inputFile):
     '''
     DESCRIPTION:    Function description
     ========
