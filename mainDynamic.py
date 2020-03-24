@@ -299,13 +299,19 @@ def calcDampFrequency(eig,param,type):
 
     if type=='symmetric':
         Thalf = ((np.log(0.5))/re)*(param.c / param.V0)
-        P = ((2*np.pi)/im)*(param.c / param.V0)
+        if im==0:
+            P = None
+        else:
+            P = ((2 * np.pi) / im) * (param.c / param.V0)
         zeta = -re / (np.sqrt(re**2 + im**2))
         w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.b)
         wn = w0 * np.sqrt(1 - zeta**2)
     elif type=='asymmetric':
-        Thalf = ((np.log(0.5))/re)*(param.b / param.V0)
-        P = ((2*np.pi)/im)*(param.b / param.V0)
+        Thalf = ((np.log(0.5)) / re) * (param.b / param.V0)
+        if im==0:
+            P = None
+        else:
+            P = ((2 * np.pi) / im) * (param.b / param.V0)
         zeta = -re / (np.sqrt(re**2 + im**2))
         w0 = (np.sqrt(re**2 + im**2)) * (param.V0 / param.c)
         wn = w0 * np.sqrt(1 - zeta**2)
@@ -323,7 +329,7 @@ def calcEigenShortPeriod(param):        #Verified by Danny
     ... param [Class]:               Class containing aerodynamic and stability parameters, same parameters as in Cit_par.py\n
 
     OUTPUT:\n
-    ... lambdac [Array]:            Array with eigen values for analytical model short period motion
+    ... lambdac [Array]:             Array with class EigenValue for analytical model short period motion
     '''
     # Short period
     A = 2*param.muc*param.KY2*(2*param.muc-param.CZadot)
@@ -332,7 +338,11 @@ def calcEigenShortPeriod(param):        #Verified by Danny
     p = [A,B,C]
     lambdac = np.roots(p)
 
-    return lambdac
+    EigLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs,param,'symmetric'))
+
+    return EigLst
 
 
 def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot different from state space eigenvalues
@@ -361,7 +371,15 @@ def calcEigenPhugoid(param): # For some reason the eigenvalues are a lot differe
     p2 = [A2,B2,C2]
     lambdacSimp = np.roots(p2)
 
-    return lambdac, lambdacSimp
+    EigLst = []
+    EigSimpLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs, param, 'symmetric'))
+
+    for egs2 in lambdacSimp:
+        EigSimpLst.append(EigenValue(egs2, param, 'symmetric'))
+
+    return EigLst, EigSimpLst
 
 
 def calcEigenDutchRoll(param): # Verified by Danny
@@ -386,7 +404,15 @@ def calcEigenDutchRoll(param): # Verified by Danny
     C2 = -param.Cnb
     lambdacSimp = np.roots([A2, B2, C2])
 
-    return lambdac, lambdacSimp
+    EigLst = []
+    EigSimpLst = []
+    for egs in lambdac:
+        EigLst.append(EigenValue(egs, param, 'asymmetric'))
+
+    for egs2 in lambdacSimp:
+        EigSimpLst.append(EigenValue(egs2, param, 'asymmetric'))
+
+    return EigLst, EigSimpLst
 
 
 def calcEigenAperRoll(param):   # Verified by Danny
@@ -403,7 +429,9 @@ def calcEigenAperRoll(param):   # Verified by Danny
     # Aperiodic Roll
     lambdac = param.Clp/(4*param.mub*param.KX2)
 
-    return lambdac
+    Eig = EigenValue(lambdac, param, 'asymmetric')
+
+    return Eig
 
 
 def calcEigenSpiral(param): # Verified by Danny
@@ -419,8 +447,9 @@ def calcEigenSpiral(param): # Verified by Danny
 
     # Spiral
     lambdac = ((2*param.CL*(param.Clb*param.Cnr-param.Cnb*param.Clr))/(param.Clp*(param.CYb*param.Cnr+4*param.mub*param.Cnb)-param.Cnp*(param.CYb*param.Clr+4*param.mub*param.Clb)))
+    Eig = EigenValue(lambdac, param, 'asymmetric')
 
-    return lambdac
+    return Eig
 
 
 def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
@@ -594,9 +623,17 @@ def stateSpace(param):
     Eigs = np.linalg.eig(As)[0]*(param.c/param.V0)
     Eiga = np.linalg.eig(Aa)[0]*(param.b/param.V0)
 
-    ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga) #class
+    EigsLst = []
+    EigaLst = []
+    for egs in Eigs:
+        EigsLst.append(EigenValue(egs,param,'symmetric'))
+    for ega in Eiga:
+        EigaLst.append(EigenValue(ega,param,'asymmetric'))
+
+    ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,EigsLst,EigaLst) #class
 
     return ss
+
 
 def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumerical,SI=True):
     '''
@@ -752,6 +789,7 @@ class EigenValue:
 
 
 class StateSpace:
+    # Eigs and Eiga are a list of classes EigenValue
     def __init__(self,As,Bs,Cs,Ds,Aa,Ba,Ca,Da,Eigs,Eiga):
         self.As = As
         self.Bs = Bs
@@ -982,26 +1020,46 @@ def main():
     eigAperRoll = calcEigenAperRoll(paramAperRoll)
     eigSpiral = calcEigenSpiral(paramSpiral)
 
-    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2:])
-    print("eigenvalues analytical Phugoid:",eigPhugoid)
-    print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp,"\n")
+    print("eigenvalues ss Phugoid: ",ssPhugoid.Eigs[2].eig,ssPhugoid.Eigs[3].eig)
+    print("periods ss Phugoid",ssPhugoid.Eigs[2].P,ssPhugoid.Eigs[3].P)
+    print("Thalf ss Phugoid",ssPhugoid.Eigs[2].Thalf,ssPhugoid.Eigs[3].Thalf,"\n")
+    print("eigenvalues analytical Phugoid:",eigPhugoid[0].eig,eigPhugoid[1].eig)
+    print("periods analytical Phugoid",eigPhugoid[0].P,eigPhugoid[1].P)
+    print("Thalf analytical Phugoid",eigPhugoid[0].Thalf,eigPhugoid[1].Thalf,"\n")
+    # print("eigenvalues analytical Phugoid Simplified:", eigPhugoidSimp[0].eig,eigPhugoidSimp[1].eig,"\n")
 
-    # print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[:2])
-    # print("eigenvalues analytical Short Period:", eigShortPeriod,"\n")
-    #
-    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1:3])
-    print("eigenvalues analytical dutch roll:", eigDutchRoll)
-    print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp,"\n")
-    #
-    # print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1:3])
-    # print("eigenvalues analytical dutch roll YD:", eigDutchRollYD)
-    # print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp,"\n")
-    #
-    # print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0])
-    # print("eigenvalue analytical damped aperiodic roll:",eigAperRoll,"\n")
-    #
-    # print("eigenvalue ss spiral:", ssSpiral.Eiga[3])
-    # print("eigenvalue analytical spiral:" ,eigSpiral)
+    print("eigenvalues ss Short Period: ", ssShortPeriod.Eigs[0].eig,ssShortPeriod.Eigs[1].eig)
+    print("periods ss Short Period",ssShortPeriod.Eigs[0].P,ssShortPeriod.Eigs[1].P)
+    print("Thalf ss Short Period",ssShortPeriod.Eigs[0].Thalf,ssShortPeriod.Eigs[1].Thalf,"\n")
+    print("eigenvalues analytical Short Period:", eigShortPeriod[0].eig,eigShortPeriod[1].eig)
+    print("periods analytical Short Period",eigShortPeriod[0].P,eigShortPeriod[1].P)
+    print("Thalf analytical Short Period",eigShortPeriod[0].Thalf,eigShortPeriod[1].Thalf,"\n")
+
+    print("eigenvalues ss dutch roll:", ssDutchRoll.Eiga[1].eig,ssDutchRoll.Eiga[2].eig)
+    print("periods ss dutch roll",ssDutchRoll.Eiga[1].P,ssDutchRoll.Eiga[2].P)
+    print("Thalf ss dutch roll",ssDutchRoll.Eiga[1].Thalf,ssDutchRoll.Eiga[2].Thalf,"\n")
+    print("eigenvalues analytical dutch roll:", eigDutchRoll[0].eig,eigDutchRoll[1].eig)
+    print("periods analytical dutch roll",eigDutchRoll[0].P,eigDutchRoll[1].P)
+    print("Thalf analytical dutch roll",eigDutchRoll[0].Thalf,eigDutchRoll[1].Thalf,"\n")
+    # print("eigenvalues analytical dutch roll Simplified:",eigDutchRollSimp[0].eig,eigDutchRollSimp[1].eig,"\n")
+
+    # print("eigenvalues ss dutch roll YD:", ssDutchRollYD.Eiga[1].eig,ssDutchRollYD.Eiga[2].eig)
+    # print("eigenvalues analytical dutch roll YD:", eigDutchRollYD[0].eig,eigDutchRollYD[1].eig)
+    # print("eigenvalues analytical dutch roll YD Simplified:",eigDutchRollYDSimp[0].eig,eigDutchRollYDSimp[1].eig,"\n")
+
+    print("eigenvalues ss aperiodic roll",ssAperRoll.Eiga[0].eig)
+    print("periods ss Short Period",ssAperRoll.Eiga[0].P)
+    print("Thalf ss Short Period",ssAperRoll.Eiga[0].Thalf,"\n")
+    print("eigenvalue analytical damped aperiodic roll:",eigAperRoll.eig)
+    print("periods analytical dutch roll",eigAperRoll.P)
+    print("Thalf analytical dutch roll",eigAperRoll.Thalf,"\n")
+
+    print("eigenvalue ss spiral:", ssSpiral.Eiga[3].eig)
+    print("periods ss spiral",ssSpiral.Eiga[3].P)
+    print("Thalf ss spiral",ssSpiral.Eiga[3].Thalf,"\n")
+    print("eigenvalue analytical spiral:" ,eigSpiral.eig)
+    print("periods analytical spiral",eigSpiral.P)
+    print("Thalf analytical spiral",eigSpiral.Thalf,"\n")
 
     #-----------------------------------------------------
     # plot eigen motions from flight test data or reference data
@@ -1017,22 +1075,22 @@ def main():
 
 
 
-    re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
-    re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
-    re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
-    re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
-    re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
-
-    print("eigenv response Phugoid for ubar:", re,'i',im)
-    print("eigenv response Phugoid for q:", re1, 'i', im1)
-    print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
-    print("eigenv response Dutchroll for p:", re3, 'i', im3)
-    print("eigenv response Dutchroll for r:", re4, 'i', im4)
+    # re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
+    # re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
+    # re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
+    # re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
+    # re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
+    #
+    # print("eigenv response Phugoid for ubar:", re,'i',im)
+    # print("eigenv response Phugoid for q:", re1, 'i', im1)
+    # print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
+    # print("eigenv response Dutchroll for p:", re3, 'i', im3)
+    # print("eigenv response Dutchroll for r:", re4, 'i', im4)
 
     #plot response to initial value
 
-    #plot_initial_value_Response(ssPhugoid, 'symmetric')
-    #plot_initial_value_Response(ssDutchRoll, 'asymmetric')
+    plot_initial_value_Response(ssPhugoid, 'symmetric')
+    plot_initial_value_Response(ssDutchRoll, 'asymmetric')
 
 if __name__ == "__main__":
     #this is run when script is started, dont change
