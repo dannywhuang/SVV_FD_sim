@@ -909,8 +909,6 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         # to make sure nothing overlaps
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-        plt.show()
-
     elif motionName=='dutch roll' or motionName=='dutch roll yd' or motionName=='spiral' or motionName =='aper roll':
 
         # get all variables
@@ -918,7 +916,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         r = dfTime['Ahrs1_bYawRate'].to_numpy()
         roll = dfTime['Ahrs1_Roll'].to_numpy()
         # createe figrue
-        fig, axs = plt.subplots(3,1,figsize=(16, 9), dpi=100)             #
+        fig, axs = plt.subplots(4,1,figsize=(16, 9), dpi=100)             #
         plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
 
         # plot q and r
@@ -1188,7 +1186,8 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-class ParametersAsym:
+
+class ParametersAsymmetric:
     '''
         DESCRIPTION:    Class containing all asymmetric matched parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
         ========
