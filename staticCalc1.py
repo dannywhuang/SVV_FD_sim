@@ -45,7 +45,6 @@ def calcAeroCoeff(inputFile):
     # Calculations
     CL = W / (0.5 * rho * Vt**2 * S)
     CD = Tp / (0.5 * rho * Vt**2 * S)
-    aeroCoeff = {}
     CL_aoa = stat.linregress(aoa_rad,CL)
     CD_CL2 = stat.linregress(CL**2,CD)
 
@@ -54,6 +53,7 @@ def calcAeroCoeff(inputFile):
     e = 1/(np.pi*A*CD_CL2.slope)
     CD0 = CD_CL2.intercept
 
+    aeroCoeff = {}
     dataNames = ['CL','CD']
     for name in dataNames:
         aeroCoeff[name] = locals()[name]
@@ -114,6 +114,8 @@ def plotLift(inputFile):
     props = dict(boxstyle='round', facecolor='white', alpha=0.5)
     plt.text(1.03*aoa_deg[1],1.05*CL[-2],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props,fontsize=16)
     plt.grid()
+
+    return
 
 
 # Makes the drag polar using the static1 measurements
