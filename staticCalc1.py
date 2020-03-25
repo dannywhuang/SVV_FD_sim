@@ -18,7 +18,11 @@ def calcAeroCoeff(inputFile):
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
 
     OUTPUT:\n
-    ... aeroCoeff [Dataframe]:          CLa, aoa0, e,CD0, Pandas dataframe containing CL, CD  
+    ... CLa [float]:                    Lift curve slope
+    ... aoa0 [float]:                   Zero lift angle of attack
+    ... e [float]:                      Oswald efficiency factor
+    ... CD0 [float]:                    Zero lift drag
+    ... aeroCoeff [Dataframe]:          Pandas dataframe containing CL, CD  
     '''
 
     # Import data
