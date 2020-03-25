@@ -218,7 +218,3 @@ def plotData(inputFile,t0,duration):
     plt.show()
 
     return
-
-#matToCSV('actual')
-# convertDynToSI('actual')
-#plotData('actual',3780,160)
