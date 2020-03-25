@@ -10,6 +10,8 @@ import staticCalc1 as calc1
 import staticCalc2 as calc2
 
 
+
+
 def plot_initial_value_Response(StateSpace, motion):
     '''
     DESCRIPTION:                     Plot initial value responses using dynamic measurement data
@@ -163,7 +165,6 @@ def plotVerificationZeroResponse(StateSpace, motion):
     plt.show()
     return
 
-
 def plotVerificationStepResponse(StateSpace, motion):
     '''
     DESCRIPTION:                     Plot zero initial value step input response for dynamic measurement data
@@ -240,7 +241,6 @@ def plotVerificationStepResponse(StateSpace, motion):
 
     plt.show()
     return
-
 
 def plotVerificationImpulseResponse(StateSpace, motion):
     '''
@@ -334,6 +334,7 @@ def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
 
     p = dfTime['Ahrs1_bRollRate'].to_numpy()
     r = dfTime['Ahrs1_bYawRate'].to_numpy()
+    roll = dfTime['Ahrs1_Roll'].to_numpy()
 
     if var == 'p':
 
@@ -386,6 +387,34 @@ def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
 
         return re, imag
 
+    if var =='roll':
+
+        p = roll - roll[0]
+
+        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
+
+        pp = (f.roots()[3] - f.roots()[1])
+
+        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
+
+        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
+        time_peaks, y_peaks = (time[peakind[1:4]]), (p[peakind[1:4]])
+        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
+
+        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
+        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
+
+        time = [i for i in time if i > 3524 and i < 3480 + 42 + 18]
+
+        half_a0 = (fl(np.array(time))[0]) / 2
+
+        for i in fl(np.array(time)):
+            if half_a0 - 0.001 <= i <= half_a0 + 0.001:
+                T_ha = time[list(fl(np.array(time))).index(i)]
+
+        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
+
+        return re, imag
 
 def eigen_dyn_phugoid(var, param):
     '''
@@ -488,7 +517,6 @@ def eigen_dyn_phugoid(var, param):
 
         return re, imag
 
-
 def calcDampFrequency(eig,param,type):
     '''
       DESCRIPTION:               Calculates halving time, period, damping coefficient, natural frequency and damped natural frequency
@@ -532,7 +560,6 @@ def calcDampFrequency(eig,param,type):
 
     return Thalf,P,zeta, w0, wn
 
-
 def calcEigenShortPeriod(param):
     '''
     DESCRIPTION:                    Calculate eigenvalues of phugoid
@@ -555,7 +582,6 @@ def calcEigenShortPeriod(param):
         EigLst.append(EigenValue(egs,param,'symmetric'))
 
     return EigLst
-
 
 def calcEigenPhugoid(param):
     '''
@@ -593,7 +619,6 @@ def calcEigenPhugoid(param):
 
     return EigLst, EigSimpLst
 
-
 def calcEigenDutchRoll(param):
     '''
     DESCRIPTION:                    Calculate eigenvalues of dutch roll
@@ -627,7 +652,6 @@ def calcEigenDutchRoll(param):
 
     return EigLst, EigSimpLst
 
-
 def calcEigenAperRoll(param):
     '''
     DESCRIPTION:                Calculate eigenvalues of aperiodic roll
@@ -645,7 +669,6 @@ def calcEigenAperRoll(param):
 
     return Eig
 
-
 def calcEigenSpiral(param): # Verified by Danny
     '''
     DESCRIPTION:                Calculate eigenvalues of spiral
@@ -661,7 +684,6 @@ def calcEigenSpiral(param): # Verified by Danny
     Eig = EigenValue(lambdac, param, 'asymmetric')
 
     return Eig
-
 
 def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     '''
@@ -725,7 +747,6 @@ def calcResponse(t0,duration,fileName,StateSpace,param,SI=True):
     YoutA, tA, XoutA = ml.lsim(stateSpaceA, ua, time, x0a)
     
     return tS, XoutS, YoutS, tA, XoutA, YoutA
-
 
 def stateSpace(param):
     '''
@@ -793,7 +814,6 @@ def stateSpace(param):
     ss = StateSpace(As,Bs,Cs,Ds,Aa,Ba,Ca,Da,EigsLst,EigaLst) #class
 
     return ss
-
 
 def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumerical,SI=True):
     '''
@@ -898,7 +918,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         r = dfTime['Ahrs1_bYawRate'].to_numpy()
         roll = dfTime['Ahrs1_Roll'].to_numpy()
         # createe figrue
-        fig, axs = plt.subplots(4,1,figsize=(16, 9), dpi=100)
+        fig, axs = plt.subplots(3,1,figsize=(16, 9), dpi=100)             #
         plt.suptitle('State response to case: %s' % (motionName), fontsize=16)
 
         # plot q and r
@@ -921,7 +941,6 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         axs[3].grid()
         axs[3].legend()
 
-
         # set tick size
         axs[0].tick_params(axis='both', which='major', labelsize=13)
         axs[0].tick_params(axis='both', which='minor', labelsize=13)
@@ -929,7 +948,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
         axs[1].tick_params(axis='both', which='minor', labelsize=13)
         axs[2].tick_params(axis='both', which='major', labelsize=13)
         axs[2].tick_params(axis='both', which='minor', labelsize=13)
-        axs[3].tick_params(axis='both', which='major', labelsize=13)
+        axs[3].tick_params(axis='both', which='major', labelsize=13)                 
         axs[3].tick_params(axis='both', which='minor', labelsize=13)
 
         if plotNumerical==True:
@@ -941,10 +960,7 @@ def plotMotionsTest(param,fileName,t0,duration,StateSpace,motionName,plotNumeric
             axs[2].legend()
         # to make sure nothing overlaps
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-
-        plt.show()
     return
-
 
 class EigenValue:
     '''
@@ -963,7 +979,6 @@ class EigenValue:
         self.zeta =  calcDampFrequency(eig,param,type)[2]
         self.w0 =  calcDampFrequency(eig,param,type)[3]
         self.wn =  calcDampFrequency(eig,param,type)[4]
-
 
 class StateSpace:
     '''
@@ -1014,7 +1029,6 @@ class StartTime:
             self.tDutchRollYD = 3573 # starts at 3573 ends at 3586
             self.tAperRoll = 3403 + 47 # starts at 3450 ends at 3468
             self.tSpiral = 3795  -14 # starts at 3781 ends at 3870      # but maybe stop simulation earlier since it diverges quick
-
 
 class DurationTime:
     '''
@@ -1174,8 +1188,7 @@ class ParametersOld:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-
-class ParametersAsymmetric:
+class ParametersAsym:
     '''
         DESCRIPTION:    Class containing all asymmetric matched parameters. To find the constant parameters at a certain time during the dynamic measurements, give inputs to this class. For the static measurement series, the class inputs can be left empty.
         ========
@@ -1566,11 +1579,14 @@ def main():
         plotMotionsTest(paramSpiral, inputFile, tStart.tSpiral, tDuration.tSpiral, ssSpiral, 'spiral', plotNumerical,SI=True)
         plt.show()
 
-
-
+    re,im = eigen_dyn_phugoid('ubar', paramPhugoid)
+    re1,im1 = eigen_dyn_phugoid('q',paramPhugoid)
+    re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
+    re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
+    re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
+    re5,im5 = eigen_dyn_dutchroll('roll',paramDutchRoll)
 
     # for verification
-
     # plot_initial_value_Response(ssPhugoid, 'symmetric')
     # plot_initial_value_Response(ssDutchRoll, 'asymmetric')
     # plotVerificationStepResponse(ssPhugoid,'symmetric')

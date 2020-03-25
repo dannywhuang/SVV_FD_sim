@@ -8,17 +8,21 @@ import import_static as imStat
 import import_weight as imWeight
 
 
+
+# Calculates CL, CD for all static1 measurements & calculates CLa, aoa0, e, CD0m using static1
 def calcAeroCoeff(inputFile):
     '''
-    DESCRIPTION:    This function calculates the lift coefficient for the static measurements. (CL \approx CN)
+    DESCRIPTION:    This function calculates the aerodynamic coefficient for the first static measurement. (CL \approx CN)
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
-    ... dataSet [String]:               Name of data set; choose between 'static1', 'static2a' or 'static2b'\n
-    ... SI [Condition]:                 By default set to SI=True\n
 
     OUTPUT:\n
-    ... aeroCoeff [Dataframe]:          Pandas dataframe containing Cl, Cd, e, Cla, Cd0, aoa0   
+    ... CLa [float]:                    Lift curve slope
+    ... aoa0 [float]:                   Zero lift angle of attack
+    ... e [float]:                      Oswald efficiency factor
+    ... CD0 [float]:                    Zero lift drag
+    ... aeroCoeff [Dataframe]:          Pandas dataframe containing CL, CD  
     '''
 
     # Import data
@@ -43,7 +47,6 @@ def calcAeroCoeff(inputFile):
     # Calculations
     CL = W / (0.5 * rho * Vt**2 * S)
     CD = Tp / (0.5 * rho * Vt**2 * S)
-    aeroCoeff = {}
     CL_aoa = stat.linregress(aoa_rad,CL)
     CD_CL2 = stat.linregress(CL**2,CD)
 
@@ -52,6 +55,7 @@ def calcAeroCoeff(inputFile):
     e = 1/(np.pi*A*CD_CL2.slope)
     CD0 = CD_CL2.intercept
 
+    aeroCoeff = {}
     dataNames = ['CL','CD']
     for name in dataNames:
         aeroCoeff[name] = locals()[name]
@@ -59,6 +63,8 @@ def calcAeroCoeff(inputFile):
 
     return CLa, aoa0, e, CD0, aeroCoeff
 
+
+# Makes the lift curve using the static1 measurements
 def plotLift(inputFile):
     '''
     DESCRIPTION:    This function plots the CL-alpha curve
@@ -111,7 +117,10 @@ def plotLift(inputFile):
     plt.text(1.03*aoa_deg[1],1.05*CL[-2],'Aircraft configuration: Clean'+'\nMach number range: '+str(round(Mmin,2))+' - '+str(round(Mmax,2))+'\nReynolds number range: '+'{:.2e}'.format(Remin)+' - '+'{:.2e}'.format(Remax),bbox=props,fontsize=16)
     plt.grid()
 
+    return
 
+
+# Makes the drag polar using the static1 measurements
 def plotPolar(inputFile):
     '''
     DESCRIPTION:    This function plots the CL-CD curve
@@ -165,19 +174,3 @@ def plotPolar(inputFile):
     plt.grid()
 
     return
-
-
-
-
-
-''' Run these lines to test if all functions work properly without any coding errors '''
-
-# inputFile = 'reference'
-
-# aeroCeoff1 = calcAeroCoeff(inputFile, 'static1')
-# aeroCoeff2a = calcAeroCoeff(inputFile, 'static2a')
-# aeroCoeff2b = calcAeroCoeff(inputFile, 'static2b')
-
-# print(aeroCeoff1)
-# print(aeroCoeff2a)
-# print(aeroCoeff2b)
