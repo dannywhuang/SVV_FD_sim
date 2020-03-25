@@ -21,7 +21,8 @@ Required libraries are:
 - calcEigenState() **put in spaceState**
 - stateSpace() **Done** 
 - calcResponse() **Done**
-- plotPolar()
+- plotLift() **Done**
+- plotPolar() **Done**
 - plotElevTrimCurve() 
 - plotElevContrForceCurve()
 - plotResponse() **put in PlotMotionsTest()**
