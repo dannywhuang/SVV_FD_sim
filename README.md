@@ -9,21 +9,19 @@ Required libraries are:
 - matplotlib
 - control
 
-## Functions to be finished
-- calcWeightCG() **Done**
-- calcThrust() **Done**
-- calcAeroCoeff() **Done**
-- calcElevEffectiveness() **Done**
-- calcElevDeflection() **Done**
-- staticFlightCondition() **Done**
-- calcElevContrForce() **Done**
+## Available functions
+- calcWeightCG() 
+- calcThrust()
+- calcAeroCoeff()
+- calcElevEffectiveness()
+- calcElevDeflection()
+- staticFlightCondition() 
+- calcElevContrForce()
 - calcEigenTest()
-- calcEigenState() **put in spaceState**
-- stateSpace() **Done** 
-- calcResponse() **Done**
-- plotLift() **Done**
-- plotPolar() **Done**
+- stateSpace()
+- calcResponse()
+- plotLift()
+- plotPolar()
 - plotElevTrimCurve() 
 - plotElevContrForceCurve()
-- plotResponse() **put in PlotMotionsTest()**
-- plotMotionsTest() **Done**
+- plotMotionsTest()
