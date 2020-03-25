@@ -48,11 +48,11 @@ def main():
         calc2.plotRedElevTrimCurve(inputFile)
         calc2.plotRedElevContrForceCurve(inputFile)
 
-        print("\nTot de volgende keer!!!\n")
+        print("\nDone.\n")
 
         plt.show()
     elif plots == 'n':
-        print('\nTot de volgende keer!!!\n')
+        print('\nDone.\n')
     return
 
 
