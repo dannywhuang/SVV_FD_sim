@@ -18,9 +18,6 @@ from scipy import interpolate, signal
 g = 9.81
 
 
-
-
-
 def plot_initial_value_Response(StateSpace, motion):
     '''
     DESCRIPTION:    Calculate responses using dynamic measurement data
@@ -391,34 +388,7 @@ def eigen_dyn_dutchroll(var, param):  # enter 'p' or 'r'
 
         return re, imag
 
-    if var =='roll':
 
-        p = roll - roll[0]
-
-        f = interpolate.UnivariateSpline(list(time), list(p), s=0)
-
-        pp = (f.roots()[3] - f.roots()[1])
-
-        imag = 2 * np.pi * pa.b / (pa.V0 * pp)
-
-        peakind = signal.find_peaks_cwt(list(p), np.arange(1, 10))
-        time_peaks, y_peaks = (time[peakind[1:4]]), (p[peakind[1:4]])
-        # fp = np.poly1d(np.polyfit(time_peaks, y_peaks, 2))
-
-        a = np.polyfit(time_peaks, np.log(y_peaks), 1)
-        fl = lambda x: np.exp(a[1]) * np.exp(a[0] * x)
-
-        time = [i for i in time if i > 3524 and i < 3480 + 42 + 18]
-
-        half_a0 = (fl(np.array(time))[0]) / 2
-
-        for i in fl(np.array(time)):
-            if half_a0 - 0.001 <= i <= half_a0 + 0.001:
-                T_ha = time[list(fl(np.array(time))).index(i)]
-
-        re = np.log(0.5) * pa.b / (pa.V0 * (T_ha - time[0]))
-
-        return re, imag
 
 def eigen_dyn_phugoid(var, param):  # enter 'q' , 'ubar' , 'theta_stab'
     pa = param
@@ -1480,14 +1450,14 @@ def main():
     re2,im2 = eigen_dyn_phugoid('theta_stab',paramPhugoid)
     re3,im3 = eigen_dyn_dutchroll('p',paramDutchRoll)
     re4,im4 = eigen_dyn_dutchroll('r',paramDutchRoll)
-    re5,im5 = eigen_dyn_dutchroll('roll',paramDutchRoll)
+
 
     print("eigenv response Phugoid for ubar:", re,'i',im)
     print("eigenv response Phugoid for q:", re1, 'i', im1)
     print("eigenv response Phugoid for theta_stab:", re2, 'i', im2)
     print("eigenv response Dutchroll for p:", re3, 'i', im3)
     print("eigenv response Dutchroll for r:", re4, 'i', im4)
-    print("eigenv response Dutchroll for roll:", re5, 'i', im5)
+
 
     #plot response to initial value
 
