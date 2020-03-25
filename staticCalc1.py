@@ -45,7 +45,6 @@ def calcAeroCoeff(inputFile):
     # Calculations
     CL = W / (0.5 * rho * Vt**2 * S)
     CD = Tp / (0.5 * rho * Vt**2 * S)
-    aeroCoeff = {}
     CL_aoa = stat.linregress(aoa_rad,CL)
     CD_CL2 = stat.linregress(CL**2,CD)
 
@@ -54,6 +53,7 @@ def calcAeroCoeff(inputFile):
     e = 1/(np.pi*A*CD_CL2.slope)
     CD0 = CD_CL2.intercept
 
+    aeroCoeff = {}
     dataNames = ['CL','CD']
     for name in dataNames:
         aeroCoeff[name] = locals()[name]
