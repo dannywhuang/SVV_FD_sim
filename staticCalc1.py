@@ -12,7 +12,7 @@ import import_weight as imWeight
 # Calculates CL, CD for all static1 measurements & calculates CLa, aoa0, e, CD0m using static1
 def calcAeroCoeff(inputFile):
     '''
-    DESCRIPTION:    This function calculates the aerodynamic coefficient for the static measurements. (CL \approx CN)
+    DESCRIPTION:    This function calculates the aerodynamic coefficient for the first static measurement. (CL \approx CN)
     ========
     INPUT:\n
     ... inputFile [String]:             Name of excel file; choose between 'reference' or 'actual'\n
